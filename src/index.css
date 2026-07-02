@@ -1,0 +1,10 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #141F2E;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+#root {
+  min-height: 100dvh;
+}
