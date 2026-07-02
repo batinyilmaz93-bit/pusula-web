@@ -22,7 +22,7 @@ export default function SecurityTab({ trip, actions, news, newsLoading, newsErro
       </div>
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
         <input value={hazard} onChange={e => setHazard(e.target.value)} placeholder="Örn. Falan sokak, gece tenha"
-          style={{ flex: 1, background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px", color: T.text, fontSize: 13 }} />
+          style={{ flex: 1, background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px", color: T.text, fontSize: 16 }} />
         <button onClick={addHazard} disabled={busy} style={{ ...btnPrimary, flex: "none", padding: "9px 14px" }}>Ekle</button>
       </div>
       {(!trip.hazards || trip.hazards.length === 0) ? <Empty text="Henüz bir not eklenmedi." /> : trip.hazards.map(h => (

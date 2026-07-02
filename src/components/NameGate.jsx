@@ -4,7 +4,7 @@ import { T, btnPrimary } from "../lib/theme.js";
 import { Field } from "./primitives.jsx";
 import { registerDevice, setAuth } from "../lib/api.js";
 
-export default function NameGate({ onReady }) {
+export default function NameGate({ onReady, message }) {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -34,6 +34,7 @@ export default function NameGate({ onReady }) {
         <div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>Seyahat arkadaşlarının seni tanıması için bir isim yeter — şifre yok.</div>
       </div>
       <Field label="Adın" value={name} onChange={setName} placeholder="Örn. Batın" />
+      {message && <div style={{ color: T.amber, fontSize: 12, marginBottom: 10 }}>{message}</div>}
       {error && <div style={{ color: T.danger, fontSize: 12, marginBottom: 10 }}>{error}</div>}
       <button onClick={submit} disabled={busy || !name.trim()} style={{ ...btnPrimary, width: "100%", opacity: busy ? 0.7 : 1 }}>
         {busy ? "Bağlanıyor..." : "Devam et"}

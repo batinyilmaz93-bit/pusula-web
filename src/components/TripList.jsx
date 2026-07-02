@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Luggage, Plus, MapPin, Trash2, UserPlus } from "lucide-react";
 import { T, btnPrimary, btnGhost } from "../lib/theme.js";
-import { Field, Avatar, AirmailStripe } from "./primitives.jsx";
+import { Field, Avatar, AirmailStripe, Spinner } from "./primitives.jsx";
 import { listTrips, createTrip, joinTrip, deleteTripApi, getAuth } from "../lib/api.js";
 import { safeConfirm } from "../lib/utils.js";
 
-export default function TripList({ onOpen }) {
+export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLogout }) {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState(null); // null | 'create' | 'join'
+  const [mode, setMode] = useState(pendingInvite ? "join" : null);
 
   const [name, setName] = useState("");
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
+  const [inviteCode, setInviteCode] = useState(pendingInvite || "");
   const [busy, setBusy] = useState(false);
 
   const user = getAuth()?.user;
@@ -24,6 +24,12 @@ export default function TripList({ onOpen }) {
     listTrips().then(setTrips).catch(e => setError(e.message)).finally(() => setLoading(false));
   };
   useEffect(refresh, []);
+  useEffect(() => {
+    if (pendingInvite) {
+      setMode("join"); setInviteCode(pendingInvite);
+      onConsumeInvite?.();
+    }
+  }, [pendingInvite]); // eslint-disable-line
 
   const submitCreate = async () => {
     const n = name.trim(), c = country.trim(), ci = city.trim();
@@ -58,14 +64,25 @@ export default function TripList({ onOpen }) {
         <div style={{ width: 40, height: 40, borderRadius: 12, background: T.amberDim, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Luggage size={20} color={T.amber} />
         </div>
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 22, fontWeight: 600 }}>Seyahatlerim</div>
           <div style={{ fontSize: 12, color: T.muted }}>{user?.name ? `Merhaba, ${user.name}` : "Ortak bütçe & seyahat asistanı"}</div>
         </div>
+        {onLogout && (
+          <button onClick={onLogout} style={{ background: "none", border: "none", color: T.muted, fontSize: 11, textDecoration: "underline", cursor: "pointer" }}>
+            başka isimle gir
+          </button>
+        )}
       </div>
 
+      {pendingInvite && mode === "join" && (
+        <div style={{ background: T.tealDim, border: `1px solid rgba(79,168,216,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
+          Bir davet linkiyle geldin — davet kodu aşağıya otomatik dolduruldu, katılmak için "Katıl" de yeter.
+        </div>
+      )}
+
       {error && <div style={{ color: T.danger, fontSize: 12, marginBottom: 12 }}>{error}</div>}
-      {loading && <div style={{ color: T.muted, fontSize: 13 }}>Yükleniyor...</div>}
+      {loading && <Spinner label="Seyahatlerin yükleniyor..." />}
 
       {!loading && trips.length === 0 && !mode && (
         <div style={{ color: T.muted, fontSize: 13, marginBottom: 16 }}>Henüz bir seyahatin yok. Yeni bir tane oluştur ya da arkadaşının davet koduyla katıl.</div>

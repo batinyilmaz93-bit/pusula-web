@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Wallet, Compass, TrendingUp, Cloud, ShieldAlert, ChevronLeft, Copy, Check } from "lucide-react";
+import { Wallet, Compass, TrendingUp, Cloud, ShieldAlert, ChevronLeft, Copy, Check, Share2, LogOut } from "lucide-react";
 import { T } from "../lib/theme.js";
-import { AirmailStripe, Empty } from "./primitives.jsx";
+import { AirmailStripe, Empty, Spinner } from "./primitives.jsx";
 import BudgetTab from "./BudgetTab.jsx";
 import ExploreTab from "./ExploreTab.jsx";
 import WeatherTab from "./WeatherTab.jsx";
@@ -9,7 +9,8 @@ import CurrencyTab from "./CurrencyTab.jsx";
 import SecurityTab from "./SecurityTab.jsx";
 import {
   getTrip, deleteTripApi, addMemberApi, removeMemberApi, addExpenseApi, deleteExpenseApi,
-  settleDebtApi, addHazardApi, deleteHazardApi, proxyGeocode, proxyWeather, proxyFx, proxyPoi, proxyNews,
+  settleDebtApi, addHazardApi, deleteHazardApi, leaveTripApi, proxyGeocode, proxyWeather, proxyFx, proxyPoi, proxyNews,
+  getAuth,
 } from "../lib/api.js";
 import { getSocket, joinTripRoom, leaveTripRoom } from "../lib/socket.js";
 import { matchOfflineCity, OFFLINE_RATES } from "../lib/offline.js";
@@ -18,7 +19,7 @@ import { safeConfirm, nowISO } from "../lib/utils.js";
 const WEATHER_REFRESH_MS = 5 * 60 * 1000;
 const DATA_REFRESH_MS = 3 * 60 * 1000;
 
-export default function TripDetail({ tripId, onBack }) {
+export default function TripDetail({ tripId, onBack, onLogout }) {
   const [trip, setTrip] = useState(null);
   const [loadError, setLoadError] = useState("");
   const [tab, setTab] = useState("budget");
@@ -171,7 +172,7 @@ export default function TripDetail({ tripId, onBack }) {
   }, [trip?.city, trip?.country]); // eslint-disable-line
 
   if (loadError) return <Empty text={`Seyahat yüklenemedi: ${loadError}`} />;
-  if (!trip) return <div style={{ padding: 24, color: T.muted }}>Yükleniyor...</div>;
+  if (!trip) return <Spinner label="Seyahat yükleniyor..." />;
 
   const actions = {
     addMember: (name) => addMemberApi(trip.id, name).then(setTrip),
@@ -189,10 +190,35 @@ export default function TripDetail({ tripId, onBack }) {
     onBack();
   };
 
+  const myUserId = getAuth()?.user?.id;
+  const myMember = trip.members.find(m => m.userId === myUserId);
+  const isAdmin = myMember?.id === trip.admin;
+
+  const leaveTrip = async () => {
+    if (!myMember) return;
+    if (!safeConfirm(`"${trip.name}" seyahatinden ayrılmak istediğine emin misin?`)) return;
+    try {
+      await leaveTripApi(trip.id, myMember.id);
+      onBack();
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
   const copyInvite = () => {
     navigator.clipboard?.writeText(trip.inviteCode).then(() => {
       setCopied(true); setTimeout(() => setCopied(false), 1500);
     });
+  };
+
+  const shareInvite = async () => {
+    const url = `${window.location.origin}/?join=${trip.inviteCode}`;
+    const shareData = { title: `Pusula — ${trip.name}`, text: `${trip.name} seyahatine katıl!`, url };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch { /* user cancelled */ }
+    } else {
+      navigator.clipboard?.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); });
+    }
   };
 
   const tabs = [
@@ -205,32 +231,47 @@ export default function TripDetail({ tripId, onBack }) {
 
   return (
     <div>
-      <div style={{ position: "sticky", top: 0, background: T.bg, zIndex: 5, padding: "16px 16px 10px", display: "flex", alignItems: "center", gap: 10, borderBottom: `1px solid ${T.border}` }}>
-        <button onClick={onBack} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, color: T.text, cursor: "pointer", display: "flex" }}>
+      <div style={{ position: "sticky", top: 0, background: T.bg, zIndex: 5, padding: "calc(16px + env(safe-area-inset-top)) 16px 10px", display: "flex", alignItems: "center", gap: 10, borderBottom: `1px solid ${T.border}` }}>
+        <button onClick={onBack} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, color: T.text, cursor: "pointer", display: "flex", flexShrink: 0 }}>
           <ChevronLeft size={18} />
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 17 }}>{trip.name}</div>
-          <div style={{ fontSize: 11, color: T.muted }}>{trip.city}, {trip.country}</div>
+          <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 17, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{trip.name}</div>
+          <div style={{ fontSize: 11, color: T.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{trip.city}, {trip.country}</div>
         </div>
+        <button onClick={shareInvite} title="Davet linkini paylaş" style={{
+          background: T.amberDim, border: `1px solid rgba(226,136,61,0.4)`, borderRadius: 10, padding: "6px 9px",
+          color: T.amber, cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0,
+        }}>
+          <Share2 size={14} />
+        </button>
         <button onClick={copyInvite} title="Davet kodunu kopyala" style={{
           background: T.tealDim, border: `1px solid rgba(79,168,216,0.4)`, borderRadius: 10, padding: "6px 10px",
-          color: T.teal, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, fontFamily: "'JetBrains Mono',monospace",
+          color: T.teal, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, fontFamily: "'JetBrains Mono',monospace", flexShrink: 0,
         }}>
-          {copied ? <Check size={12} /> : <Copy size={12} />} {trip.inviteCode}
+          {copied ? <Check size={12} /> : <Copy size={12} />} <span className="invite-code-text">{trip.inviteCode}</span>
         </button>
       </div>
 
       <div style={{ padding: "14px 16px 100px" }}>
-        {tab === "budget" && <BudgetTab trip={trip} fx={fx} actions={actions} />}
+        {tab === "budget" && <BudgetTab trip={trip} fx={fx} actions={actions} myMemberId={myMember?.id} />}
         {tab === "explore" && <ExploreTab trip={trip} poi={poi} poiLoading={loading.poi} poiError={errors.poi} poiOffline={poiOffline} lastUpdated={ts.poi} onRefresh={refreshExplore} />}
         {tab === "weather" && <WeatherTab trip={trip} weather={weather} wLoading={loading.weather} weatherOffline={weatherOffline} lastUpdated={ts.weather} onRefresh={refreshWeather} error={errors.weather} />}
         {tab === "currency" && <CurrencyTab trip={trip} fx={fx} fxLoading={loading.fx} fxOffline={fxOffline} lastUpdated={ts.fx} onRefresh={refreshCurrency} error={errors.fx} />}
         {tab === "security" && <SecurityTab trip={trip} actions={actions} news={news} newsLoading={loading.news} newsError={errors.news} lastUpdated={ts.news} onRefresh={refreshExplore} />}
         {tab === "budget" && (
-          <button onClick={deleteTrip} style={{ marginTop: 18, background: "none", border: "none", color: T.muted, fontSize: 11.5, textDecoration: "underline", cursor: "pointer" }}>
-            Bu seyahati sil
-          </button>
+          <div style={{ marginTop: 18, display: "flex", gap: 14 }}>
+            {isAdmin && (
+              <button onClick={deleteTrip} style={{ background: "none", border: "none", color: T.muted, fontSize: 11.5, textDecoration: "underline", cursor: "pointer" }}>
+                Bu seyahati sil
+              </button>
+            )}
+            {!isAdmin && myMember && (
+              <button onClick={leaveTrip} style={{ background: "none", border: "none", color: T.muted, fontSize: 11.5, textDecoration: "underline", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                <LogOut size={11} /> Seyahatten ayrıl
+              </button>
+            )}
+          </div>
         )}
       </div>
 

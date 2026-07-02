@@ -17,7 +17,7 @@ const EXPENSE_CATEGORIES = [
 ];
 const categoryIcon = (key) => (EXPENSE_CATEGORIES.find(c => c.key === key) || EXPENSE_CATEGORIES[5]).icon;
 
-export default function BudgetTab({ trip, fx, actions }) {
+export default function BudgetTab({ trip, fx, actions, myMemberId }) {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [memberName, setMemberName] = useState("");
@@ -80,6 +80,16 @@ export default function BudgetTab({ trip, fx, actions }) {
           <span>{trip.members.length} kişi ortak</span>
           <span>{trip.expenses.length} harcama</span>
         </div>
+        {currency !== "TRY" && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10, background: T.amberDim, borderRadius: 10, padding: "7px 10px" }}>
+            <span style={{ fontSize: 11.5, color: T.amber, fontWeight: 600 }}>Seyahat para birimi: {currency} · {trip.country}</span>
+            {fx ? (
+              <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: T.muted }}>1 {currency} ≈ {fx.rate.toFixed(2)} TRY</span>
+            ) : (
+              <span style={{ fontSize: 11, color: T.muted }}>kur alınıyor...</span>
+            )}
+          </div>
+        )}
       </div>
 
       <SectionLabel icon={Users}>Katılımcılar</SectionLabel>
@@ -87,7 +97,7 @@ export default function BudgetTab({ trip, fx, actions }) {
         {trip.members.map(m => (
           <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 6, background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: "5px 10px 5px 5px" }}>
             <Avatar member={m} size={22} />
-            <span style={{ fontSize: 12.5 }}>{m.name}</span>
+            <span style={{ fontSize: 12.5 }}>{m.name}{m.id === myMemberId && <span style={{ color: T.teal }}> (sen)</span>}</span>
             {m.id === trip.admin && <Crown size={11} color={T.amber} />}
             {m.id !== trip.admin && (
               <button onClick={() => removeMember(m.id)} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", padding: 0, display: "flex" }}>
@@ -109,7 +119,7 @@ export default function BudgetTab({ trip, fx, actions }) {
       {showAddMember && (
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           <input value={memberName} onChange={e => setMemberName(e.target.value)} placeholder="Ad soyad"
-            style={{ flex: 1, background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px", color: T.text, fontSize: 13.5 }} />
+            style={{ flex: 1, background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px", color: T.text, fontSize: 16 }} />
           <button onClick={addMember} disabled={busy} style={{ ...btnPrimary, flex: "none", padding: "9px 14px" }}>Ekle</button>
         </div>
       )}
@@ -117,11 +127,15 @@ export default function BudgetTab({ trip, fx, actions }) {
       <SectionLabel icon={Receipt}>Bakiye Özeti</SectionLabel>
       {debts.length === 0 && <Empty text="Herkes eşit — ödenecek borç yok." />}
       {debts.map((d, i) => (
-        <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 13 }}>
+        <div key={i} style={{
+          display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", fontSize: 13,
+          background: (d.from === myMemberId || d.to === myMemberId) ? T.amberDim : "transparent",
+          borderRadius: 10, marginBottom: 2,
+        }}>
           <Avatar member={memberById[d.from]} size={24} />
-          <span style={{ fontWeight: 600 }}>{memberById[d.from]?.name}</span>
+          <span style={{ fontWeight: 600 }}>{memberById[d.from]?.name}{d.from === myMemberId && " (sen)"}</span>
           <ArrowRightLeft size={13} color={T.muted} />
-          <span style={{ fontWeight: 600 }}>{memberById[d.to]?.name}</span>
+          <span style={{ fontWeight: 600 }}>{memberById[d.to]?.name}{d.to === myMemberId && " (sen)"}</span>
           <Avatar member={memberById[d.to]} size={24} />
           <span style={{ marginLeft: "auto", textAlign: "right" }}>
             <span style={{ display: "block", fontFamily: "'JetBrains Mono',monospace", color: T.danger, fontWeight: 600 }}>{fmtMoney(d.amount, currency)}</span>
@@ -175,6 +189,11 @@ export default function BudgetTab({ trip, fx, actions }) {
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 14, marginTop: 8 }}>
           <Field label="Açıklama" value={exp.desc} onChange={v => setExp({ ...exp, desc: v })} placeholder="Örn. Akşam yemeği" />
           <Field label={`Tutar (${currency})`} value={exp.amount} onChange={v => setExp({ ...exp, amount: v })} placeholder="0.00" type="number" />
+          {fx && currency !== "TRY" && parseFloat(exp.amount) > 0 && (
+            <div style={{ fontSize: 12, color: T.amber, marginTop: -6, marginBottom: 10, fontFamily: "'JetBrains Mono',monospace" }}>
+              ≈ {fmtMoney(parseFloat(exp.amount) * fx.rate, "TRY")}
+            </div>
+          )}
           <div style={{ fontSize: 11, color: T.muted, margin: "8px 0 5px" }}>Kategori</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
             {EXPENSE_CATEGORIES.map(c => (

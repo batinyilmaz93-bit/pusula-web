@@ -47,6 +47,18 @@ export function StampBadge({ children, size = 54 }) {
   );
 }
 
+export function Spinner({ label = "Yükleniyor..." }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "60px 20px", color: T.muted }}>
+      <div className="spin" style={{
+        width: 28, height: 28, borderRadius: "50%",
+        border: `3px solid ${T.border}`, borderTopColor: T.amber,
+      }} />
+      <span style={{ fontSize: 12.5, fontFamily: "'Inter',sans-serif" }}>{label}</span>
+    </div>
+  );
+}
+
 export function Empty({ text }) {
   return <div style={{ color: T.muted, fontSize: 13, textAlign: "center", padding: "24px 10px", fontFamily: "'Inter',sans-serif" }}>{text}</div>;
 }
@@ -74,7 +86,7 @@ export function Field({ label, value, onChange, placeholder, type = "text" }) {
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} type={type}
         style={{
           width: "100%", background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10,
-          padding: "10px 12px", color: T.text, fontSize: 14, fontFamily: "'Inter',sans-serif", boxSizing: "border-box",
+          padding: "10px 12px", color: T.text, fontSize: 16, fontFamily: "'Inter',sans-serif", boxSizing: "border-box",
         }} />
     </div>
   );
