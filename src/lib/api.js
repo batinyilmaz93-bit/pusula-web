@@ -19,7 +19,9 @@ export function clearAuth() {
   localStorage.removeItem(AUTH_KEY);
 }
 
-async function request(path, { method = "GET", body, auth = true } = {}) {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function requestOnce(path, { method = "GET", body, auth = true } = {}) {
   const headers = { "Content-Type": "application/json" };
   if (auth) {
     const a = getAuth();
@@ -39,6 +41,22 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
   return data;
 }
 
+// Free-tier hosts (Render) spin down after idling and can bounce a request
+// with a quick 502/503 while waking back up. For read-only GET calls that's
+// safe to retry silently instead of surfacing an "offline" fallback for
+// something that resolves itself a couple seconds later.
+async function request(path, opts = {}) {
+  const method = opts.method || "GET";
+  if (method !== "GET") return requestOnce(path, opts);
+  const delays = [0, 1500, 3000];
+  let lastErr;
+  for (const d of delays) {
+    if (d) await sleep(d);
+    try { return await requestOnce(path, opts); } catch (e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+
 /* ---- auth ---- */
 export const registerDevice = (name) => request("/api/auth/device", { method: "POST", body: { name }, auth: false });
 
@@ -48,6 +66,7 @@ export const createTrip = (payload) => request("/api/trips", { method: "POST", b
 export const joinTrip = (inviteCode) => request("/api/trips/join", { method: "POST", body: { inviteCode } });
 export const getTrip = (id) => request(`/api/trips/${id}`);
 export const deleteTripApi = (id) => request(`/api/trips/${id}`, { method: "DELETE" });
+export const updateTripCurrencyApi = (tripId, currencyCode) => request(`/api/trips/${tripId}`, { method: "PATCH", body: { currencyCode } });
 
 /* ---- members ---- */
 export const addMemberApi = (tripId, name) => request(`/api/trips/${tripId}/members`, { method: "POST", body: { name } });

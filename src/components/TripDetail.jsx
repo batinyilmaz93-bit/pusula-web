@@ -9,8 +9,8 @@ import CurrencyTab from "./CurrencyTab.jsx";
 import SecurityTab from "./SecurityTab.jsx";
 import {
   getTrip, deleteTripApi, addMemberApi, removeMemberApi, addExpenseApi, deleteExpenseApi,
-  settleDebtApi, addHazardApi, deleteHazardApi, leaveTripApi, proxyGeocode, proxyWeather, proxyFx, proxyPoi, proxyNews,
-  getAuth,
+  settleDebtApi, addHazardApi, deleteHazardApi, leaveTripApi, updateTripCurrencyApi,
+  proxyGeocode, proxyWeather, proxyFx, proxyPoi, proxyNews, getAuth,
 } from "../lib/api.js";
 import { getSocket, joinTripRoom, leaveTripRoom } from "../lib/socket.js";
 import { matchOfflineCity, OFFLINE_RATES } from "../lib/offline.js";
@@ -111,10 +111,16 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
     if (!trip) return;
     setLoading(l => ({ ...l, fx: true }));
     setErrors(er => ({ ...er, fx: undefined }));
+    const persistCode = (code) => {
+      if (code && code !== trip.currencyCode) {
+        updateTripCurrencyApi(trip.id, code).then(setTrip).catch(() => {});
+      }
+    };
     try {
       const out = await proxyFx(trip.country);
       setFx(out); setFxOffline(false);
       setTs(t => ({ ...t, fx: nowISO() }));
+      persistCode(out.code);
     } catch {
       const geo = geoRef.current;
       const off = matchOfflineCity(trip.city);
@@ -124,6 +130,7 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
         setFx({ code, rate: offRate.rate, inverse: 1 / offRate.rate, asOf: offRate.asOf });
         setFxOffline(true);
         setTs(t => ({ ...t, fx: nowISO() }));
+        persistCode(code);
       } else {
         setErrors(er => ({ ...er, fx: "Kur servisine ulaşılamadı" }));
       }
