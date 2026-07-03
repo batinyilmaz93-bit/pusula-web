@@ -4,6 +4,7 @@ import { T, btnPrimary, btnGhost } from "../lib/theme.js";
 import { Field, Avatar, AirmailStripe, Spinner } from "./primitives.jsx";
 import { listTrips, createTrip, joinTrip, deleteTripApi, getAuth } from "../lib/api.js";
 import { safeConfirm } from "../lib/utils.js";
+import { APP_VERSION } from "../lib/version.js";
 
 export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLogout }) {
   const [trips, setTrips] = useState([]);
@@ -159,6 +160,9 @@ export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLog
           </div>
         </div>
       )}
+      <div style={{ textAlign: "center", fontSize: 9, color: T.muted, opacity: 0.5, marginTop: 24, fontFamily: "'JetBrains Mono',monospace" }}>
+        sürüm: {APP_VERSION}
+      </div>
       </div>
     </div>
   );

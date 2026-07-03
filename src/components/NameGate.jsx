@@ -3,6 +3,7 @@ import { Compass, Sun } from "lucide-react";
 import { T } from "../lib/theme.js";
 import { Field } from "./primitives.jsx";
 import { registerDevice, setAuth } from "../lib/api.js";
+import { APP_VERSION } from "../lib/version.js";
 
 export default function NameGate({ onReady, message }) {
   const [name, setName] = useState("");
@@ -64,6 +65,9 @@ export default function NameGate({ onReady, message }) {
 
       <div style={{ textAlign: "center", fontSize: 11, color: T.muted, marginTop: 18 }}>
         İyi seyahatler ✈️
+      </div>
+      <div style={{ textAlign: "center", fontSize: 9, color: T.muted, opacity: 0.5, marginTop: 6, fontFamily: "'JetBrains Mono',monospace" }}>
+        sürüm: {APP_VERSION}
       </div>
     </div>
   );
