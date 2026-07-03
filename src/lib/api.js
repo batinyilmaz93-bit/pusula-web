@@ -41,14 +41,15 @@ async function requestOnce(path, { method = "GET", body, auth = true } = {}) {
   return data;
 }
 
-// Free-tier hosts (Render) spin down after idling and can bounce a request
-// with a quick 502/503 while waking back up. For read-only GET calls that's
-// safe to retry silently instead of surfacing an "offline" fallback for
-// something that resolves itself a couple seconds later.
+// Free-tier hosts (Render) spin down after idling and can take up to ~50
+// seconds to fully wake back up, bouncing early requests with a quick
+// 502/503 in the meantime. The previous retry window (~4.5s total) gave up
+// long before that finished, which is exactly why "canlı" data kept falling
+// back to offline fallbacks. This window now spans ~60s across 8 attempts.
 async function request(path, opts = {}) {
   const method = opts.method || "GET";
   if (method !== "GET") return requestOnce(path, opts);
-  const delays = [0, 1500, 3000];
+  const delays = [0, 1500, 3000, 5000, 7000, 9000, 12000, 15000];
   let lastErr;
   for (const d of delays) {
     if (d) await sleep(d);
