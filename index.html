@@ -1,28 +1,5 @@
-<!doctype html>
-<html lang="tr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
-    <title>Pusula Seyahat</title>
-    <meta name="description" content="Grup seyahatlerinde ortak bütçe, hava durumu, döviz kuru ve yerel öneriler." />
-
-    <!-- Android / Chrome install -->
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#FBF2E4" />
-
-    <!-- iOS "Add to Home Screen" -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Pusula" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" href="/icons/favicon.png" />
-
-    <style>
-      html, body { background: #FBF2E4; margin: 0; }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+// A single source of truth for "which build is this" — shown in the app
+// footer and can be compared against the backend's /api/health response.
+// Bump this string every time a new zip is produced so a stale deploy is
+// obvious at a glance instead of requiring a debugging session to detect.
+export const APP_VERSION = "2026-07-03T10:48Z";
