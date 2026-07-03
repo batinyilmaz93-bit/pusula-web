@@ -56,18 +56,24 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
     };
   }, [tripId]); // eslint-disable-line
 
-  // ---- geocode (shared by weather + poi), backend proxy first, offline fallback ----
+  // ---- geocode (shared by weather + poi) ----
+  // Returns coordinates from the live geocoder when possible; if that fails
+  // but the city matches our curated offline table, we still return THAT
+  // table's real lat/lon (so live Overpass/weather calls can still be
+  // attempted — a geocoding hiccup alone should never force the tiny
+  // hardcoded fallback content when we already have good coordinates).
+  // Only returns null if we truly have no coordinates from any source.
   const resolveGeo = useCallback(async () => {
     if (!trip) return null;
     if (geoRef.current) return geoRef.current;
     if (!geoPromiseRef.current) {
       geoPromiseRef.current = (async () => {
+        const off = matchOfflineCity(trip.city);
         try {
           const live = await proxyGeocode(trip.city, trip.country);
-          return { ...live, offline: false };
+          return { lat: live.lat, lon: live.lon, timezone: live.timezone, offlineData: off };
         } catch {
-          const off = matchOfflineCity(trip.city);
-          if (off) return { lat: off.lat, lon: off.lon, timezone: off.timezone, offline: true, offlineData: off };
+          if (off) return { lat: off.lat, lon: off.lon, timezone: off.timezone, offlineData: off };
           return null;
         }
       })();
@@ -82,21 +88,13 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
     setErrors(er => ({ ...er, weather: undefined }));
     const geo = await resolveGeo();
     if (!geo) { setLoading(l => ({ ...l, weather: false })); return; }
-    if (geo.offline) {
-      setWeather({ ...geo.offlineData.typicalWeather, localTime: null, timezone: geo.timezone });
-      setWeatherOffline(true);
-      setTs(t => ({ ...t, weather: nowISO() }));
-      setLoading(l => ({ ...l, weather: false }));
-      return;
-    }
     try {
       const w = await proxyWeather(geo.lat, geo.lon, geo.timezone);
       setWeather(w); setWeatherOffline(false);
       setTs(t => ({ ...t, weather: nowISO() }));
     } catch {
-      const off = matchOfflineCity(trip.city);
-      if (off) {
-        setWeather({ ...off.typicalWeather, localTime: null, timezone: off.timezone });
+      if (geo.offlineData) {
+        setWeather({ ...geo.offlineData.typicalWeather, localTime: null, timezone: geo.timezone });
         setWeatherOffline(true);
         setTs(t => ({ ...t, weather: nowISO() }));
       } else {
@@ -145,21 +143,15 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
     setErrors(er => ({ ...er, poi: undefined, news: undefined }));
     const geo = await resolveGeo();
     if (geo) {
-      if (geo.offline) {
-        setPoi(geo.offlineData.poi); setPoiOffline(true);
-        setTs(t => ({ ...t, poi: nowISO() }));
-        setLoading(l => ({ ...l, poi: false }));
-      } else {
-        proxyPoi(geo.lat, geo.lon)
-          .then(p => { setPoi(p); setPoiOffline(false); setTs(t => ({ ...t, poi: nowISO() })); })
-          .catch(() => {
-            const off = matchOfflineCity(trip.city);
-            if (off) { setPoi(off.poi); setPoiOffline(true); setTs(t => ({ ...t, poi: nowISO() })); }
-            else setErrors(er => ({ ...er, poi: "canlı yerler servisine ulaşılamadı" }));
-          })
-          .finally(() => setLoading(l => ({ ...l, poi: false })));
-      }
+      proxyPoi(geo.lat, geo.lon)
+        .then(p => { setPoi(p); setPoiOffline(false); setTs(t => ({ ...t, poi: nowISO() })); })
+        .catch(() => {
+          if (geo.offlineData) { setPoi(geo.offlineData.poi); setPoiOffline(true); setTs(t => ({ ...t, poi: nowISO() })); }
+          else setErrors(er => ({ ...er, poi: "canlı yerler servisine ulaşılamadı" }));
+        })
+        .finally(() => setLoading(l => ({ ...l, poi: false })));
     } else {
+      setErrors(er => ({ ...er, poi: "Şehir bulunamadı" }));
       setLoading(l => ({ ...l, poi: false }));
     }
 
@@ -238,23 +230,27 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
 
   return (
     <div>
-      <div style={{ position: "sticky", top: 0, background: T.bg, zIndex: 5, padding: "calc(16px + env(safe-area-inset-top)) 16px 10px", display: "flex", alignItems: "center", gap: 10, borderBottom: `1px solid ${T.border}` }}>
-        <button onClick={onBack} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, color: T.text, cursor: "pointer", display: "flex", flexShrink: 0 }}>
+      <div style={{
+        position: "sticky", top: 0, background: T.headerBar, zIndex: 5,
+        padding: "calc(16px + env(safe-area-inset-top)) 16px 14px", display: "flex", alignItems: "center", gap: 10,
+        boxShadow: "0 4px 16px rgba(193,68,59,0.22)",
+      }}>
+        <button onClick={onBack} style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 10, padding: 7, color: "#FFF9F0", cursor: "pointer", display: "flex", flexShrink: 0 }}>
           <ChevronLeft size={18} />
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 17, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{trip.name}</div>
-          <div style={{ fontSize: 11, color: T.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{trip.city}, {trip.country}</div>
+          <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 18, color: "#FFF9F0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{trip.name}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,249,240,0.8)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{trip.city}, {trip.country}</div>
         </div>
         <button onClick={shareInvite} title="Davet linkini paylaş" style={{
-          background: T.amberDim, border: `1px solid rgba(226,104,61,0.4)`, borderRadius: 10, padding: "6px 9px",
-          color: T.amber, cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0,
+          background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 10, padding: "7px 9px",
+          color: "#FFF9F0", cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0,
         }}>
           <Share2 size={14} />
         </button>
         <button onClick={copyInvite} title="Davet kodunu kopyala" style={{
-          background: T.tealDim, border: `1px solid rgba(46,158,152,0.4)`, borderRadius: 10, padding: "6px 10px",
-          color: T.teal, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, fontFamily: "'JetBrains Mono',monospace", flexShrink: 0,
+          background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 10, padding: "7px 10px",
+          color: "#FFF9F0", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, fontFamily: "'JetBrains Mono',monospace", flexShrink: 0,
         }}>
           {copied ? <Check size={12} /> : <Copy size={12} />} <span className="invite-code-text">{trip.inviteCode}</span>
         </button>

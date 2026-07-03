@@ -19,6 +19,8 @@ export const T = {
   amberDim: "rgba(226,104,61,0.13)",
   teal: "#2E9E98",
   tealDim: "rgba(46,158,152,0.13)",
+  navy: "#26415F",
+  navyDim: "rgba(38,65,95,0.10)",
   danger: "#D64545",
   dangerDim: "rgba(214,69,69,0.11)",
   success: "#4CA771",
@@ -26,6 +28,7 @@ export const T = {
   stripeRed: "#C1443B",
   shadow: "0 3px 14px rgba(120,72,32,0.09)",
   shadowSoft: "0 1px 6px rgba(120,72,32,0.06)",
+  headerBar: "linear-gradient(120deg, #E2683D, #C1443B)",
 };
 
 export const FONTS = `

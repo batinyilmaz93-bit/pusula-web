@@ -62,6 +62,36 @@ export function Spinner({ label = "Yükleniyor..." }) {
   );
 }
 
+export function DonutChart({ segments, size = 128, thickness = 16, centerLabel, centerValue }) {
+  const r = (size - thickness) / 2;
+  const c = 2 * Math.PI * r;
+  const total = segments.reduce((s, seg) => s + seg.value, 0);
+  let offset = 0;
+  return (
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={T.border} strokeWidth={thickness} />
+        {total > 0 && segments.filter(s => s.value > 0).map((seg, i) => {
+          const frac = seg.value / total;
+          const len = frac * c;
+          const dash = `${len} ${c - len}`;
+          const dashoffset = -offset;
+          offset += len;
+          return (
+            <circle key={i} cx={size / 2} cy={size / 2} r={r} fill="none" stroke={seg.color}
+              strokeWidth={thickness} strokeDasharray={dash} strokeDashoffset={dashoffset}
+              strokeLinecap={segments.filter(s=>s.value>0).length > 1 ? "butt" : "round"} />
+          );
+        })}
+      </svg>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+        {centerLabel && <div style={{ fontSize: 9.5, color: T.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>{centerLabel}</div>}
+        {centerValue && <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginTop: 2, lineHeight: 1.2 }}>{centerValue}</div>}
+      </div>
+    </div>
+  );
+}
+
 export function Empty({ text }) {
   return <div style={{ color: T.muted, fontSize: 13, textAlign: "center", padding: "24px 10px", fontFamily: "'Inter',sans-serif" }}>{text}</div>;
 }
@@ -94,3 +124,6 @@ export function Field({ label, value, onChange, placeholder, type = "text" }) {
     </div>
   );
 }
+
+// segments: [{ value, color }]. Renders a ring with a hollow center for a
+// total/label to sit in, mirroring the "Total Group Expenses" donut chart.

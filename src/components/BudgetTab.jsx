@@ -4,18 +4,20 @@ import {
   Trash2, HandCoins, Utensils, Car, Bed, Ticket, ShoppingBag, MoreHorizontal, AlertTriangle,
 } from "lucide-react";
 import { T, btnPrimary, btnGhost } from "../lib/theme.js";
-import { Avatar, SectionLabel, Dashed, Empty, Field, AirmailStripe, StampBadge } from "./primitives.jsx";
+import { Avatar, SectionLabel, Dashed, Empty, Field, AirmailStripe, StampBadge, DonutChart } from "./primitives.jsx";
 import { fmtMoney, computeBalances, simplifyDebts, safeConfirm } from "../lib/utils.js";
 
 const EXPENSE_CATEGORIES = [
-  { key: "yeme-icme", label: "Yeme-içme", icon: Utensils },
-  { key: "ulasim", label: "Ulaşım", icon: Car },
-  { key: "konaklama", label: "Konaklama", icon: Bed },
-  { key: "aktivite", label: "Aktivite", icon: Ticket },
-  { key: "alisveris", label: "Alışveriş", icon: ShoppingBag },
-  { key: "diger", label: "Diğer", icon: MoreHorizontal },
+  { key: "yeme-icme", label: "Yeme-içme", icon: Utensils, color: "#E2683D" },
+  { key: "ulasim", label: "Ulaşım", icon: Car, color: "#2E9E98" },
+  { key: "konaklama", label: "Konaklama", icon: Bed, color: "#C98BC9" },
+  { key: "aktivite", label: "Aktivite", icon: Ticket, color: "#E0A83E" },
+  { key: "alisveris", label: "Alışveriş", icon: ShoppingBag, color: "#D64545" },
+  { key: "diger", label: "Diğer", icon: MoreHorizontal, color: "#9C8B72" },
 ];
 const categoryIcon = (key) => (EXPENSE_CATEGORIES.find(c => c.key === key) || EXPENSE_CATEGORIES[5]).icon;
+const categoryColor = (key) => (EXPENSE_CATEGORIES.find(c => c.key === key) || EXPENSE_CATEGORIES[5]).color;
+const categoryLabel = (key) => (EXPENSE_CATEGORIES.find(c => c.key === key) || EXPENSE_CATEGORIES[5]).label;
 
 export default function BudgetTab({ trip, fx, actions, myMemberId }) {
   const [showAddMember, setShowAddMember] = useState(false);
@@ -30,6 +32,11 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
   const memberById = Object.fromEntries(trip.members.map(m => [m.id, m]));
   const total = trip.expenses.reduce((s, e) => s + e.amount, 0);
   const currency = trip.currencyCode || "TRY";
+  const categoryTotals = EXPENSE_CATEGORIES.map(c => ({
+    key: c.key, color: c.color, label: c.label,
+    value: trip.expenses.filter(e => !e.isSettlement && e.category === c.key).reduce((s, e) => s + e.amount, 0),
+  })).filter(c => c.value > 0).sort((a, b) => b.value - a.value);
+  const spendTotal = categoryTotals.reduce((s, c) => s + c.value, 0);
 
   const addMember = async () => {
     if (!memberName.trim()) return;
@@ -91,6 +98,27 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
           </div>
         )}
       </div>
+
+      {categoryTotals.length > 0 && (
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, marginTop: 10, boxShadow: T.shadowSoft, display: "flex", alignItems: "center", gap: 16 }}>
+          <DonutChart
+            segments={categoryTotals}
+            centerLabel="Toplam"
+            centerValue={`${Math.round(spendTotal).toLocaleString("tr-TR")}`}
+          />
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 7 }}>
+            {categoryTotals.map(c => (
+              <div key={c.key} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12 }}>
+                <div style={{ width: 9, height: 9, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                <span style={{ color: T.text, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.label}</span>
+                <span style={{ color: T.muted, fontFamily: "'JetBrains Mono',monospace", fontSize: 11, flexShrink: 0 }}>
+                  %{Math.round((c.value / spendTotal) * 100)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <SectionLabel icon={Users}>Katılımcılar</SectionLabel>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -156,13 +184,17 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
           <div key={e.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 14px", marginBottom: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div style={{ display: "flex", gap: 10, minWidth: 0 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: e.isSettlement ? T.tealDim : T.amberDim, color: e.isSettlement ? T.teal : T.amber, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{
+                  width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                  background: e.isSettlement ? T.tealDim : `${categoryColor(e.category)}22`,
+                  color: e.isSettlement ? T.teal : categoryColor(e.category),
+                }}>
                   {e.isSettlement ? <HandCoins size={14} /> : <CatIcon size={14} />}
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{e.desc}</div>
                   <div style={{ fontSize: 11.5, color: T.muted, marginTop: 2 }}>
-                    {e.isSettlement ? "ödeme kaydı" : `${memberById[e.paidBy]?.name || "?"} ödedi · ${e.splitAmong.length} kişiye bölüştü`}
+                    {e.isSettlement ? "ödeme kaydı" : `${categoryLabel(e.category)} · ${memberById[e.paidBy]?.name || "?"} ödedi · ${e.splitAmong.length} kişiye bölüştü`}
                   </div>
                 </div>
               </div>

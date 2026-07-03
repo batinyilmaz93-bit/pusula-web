@@ -49,7 +49,7 @@ async function requestOnce(path, { method = "GET", body, auth = true } = {}) {
 async function request(path, opts = {}) {
   const method = opts.method || "GET";
   if (method !== "GET") return requestOnce(path, opts);
-  const delays = [0, 1500, 3000, 5000, 7000, 9000, 12000, 15000];
+  const delays = opts.retrySchedule || [0, 1500, 3000, 5000, 7000, 9000, 12000, 15000];
   let lastErr;
   for (const d of delays) {
     if (d) await sleep(d);
@@ -57,6 +57,7 @@ async function request(path, opts = {}) {
   }
   throw lastErr;
 }
+const SHORT_RETRY = [0, 1000, 2000, 3000]; // ~6s — used where a good fallback exists
 
 /* ---- auth ---- */
 export const registerDevice = (name) => request("/api/auth/device", { method: "POST", body: { name }, auth: false });
@@ -87,7 +88,7 @@ export const deleteHazardApi = (tripId, hazardId) => request(`/api/trips/${tripI
 const qs = (obj) => Object.entries(obj).filter(([, v]) => v !== undefined && v !== null && v !== "")
   .map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&");
 
-export const proxyGeocode = (city, country) => request(`/api/proxy/geocode?${qs({ city, country })}`);
+export const proxyGeocode = (city, country) => request(`/api/proxy/geocode?${qs({ city, country })}`, { retrySchedule: SHORT_RETRY });
 export const proxyWeather = (lat, lon, timezone) => request(`/api/proxy/weather?${qs({ lat, lon, timezone })}`);
 export const proxyFx = (country) => request(`/api/proxy/fx?${qs({ country })}`);
 export const proxyPoi = (lat, lon, nocache) => request(`/api/proxy/poi?${qs({ lat, lon, nocache: nocache ? 1 : undefined })}`);

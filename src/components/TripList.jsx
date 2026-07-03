@@ -59,21 +59,26 @@ export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLog
   };
 
   return (
-    <div style={{ padding: "20px 16px 90px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: T.amberDim, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Luggage size={20} color={T.amber} />
+    <div>
+      <div style={{
+        background: T.headerBar, padding: "calc(20px + env(safe-area-inset-top)) 16px 22px",
+        display: "flex", alignItems: "center", gap: 10, boxShadow: "0 4px 16px rgba(193,68,59,0.22)",
+      }}>
+        <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Luggage size={20} color="#FFF9F0" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 22, fontWeight: 600 }}>Seyahatlerim</div>
-          <div style={{ fontSize: 12, color: T.muted }}>{user?.name ? `Merhaba, ${user.name}` : "Ortak bütçe & seyahat asistanı"}</div>
+          <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 22, fontWeight: 600, color: "#FFF9F0" }}>Seyahatlerim</div>
+          <div style={{ fontSize: 12, color: "rgba(255,249,240,0.82)" }}>{user?.name ? `Merhaba, ${user.name}` : "Ortak bütçe & seyahat asistanı"}</div>
         </div>
         {onLogout && (
-          <button onClick={onLogout} style={{ background: "none", border: "none", color: T.muted, fontSize: 11, textDecoration: "underline", cursor: "pointer" }}>
+          <button onClick={onLogout} style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 8, padding: "6px 10px", color: "#FFF9F0", fontSize: 11, cursor: "pointer", flexShrink: 0 }}>
             başka isimle gir
           </button>
         )}
       </div>
+
+      <div style={{ padding: "18px 16px 90px", marginTop: -10 }}>
 
       {pendingInvite && mode === "join" && (
         <div style={{ background: T.tealDim, border: `1px solid rgba(46,158,152,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
@@ -154,6 +159,7 @@ export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLog
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

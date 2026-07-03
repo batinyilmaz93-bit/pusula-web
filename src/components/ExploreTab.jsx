@@ -15,6 +15,15 @@ const VLOG_INTRO = {
   museum: "Kültür molası için uğradığımız duraklar 🖼️",
   shopping: "Hediyelik ve alışveriş için gezdiğimiz yerler 🛍️",
 };
+// Each category gets its own tile color, standing in for a photo — a
+// distinctive gallery-tile look without needing (and risking the accuracy
+// of) real place photography we don't have a source for.
+const CATEGORY_STYLE = {
+  restaurant: { grad: "linear-gradient(150deg, #E2683D, #F2A65A)" },
+  cafe: { grad: "linear-gradient(150deg, #8A5A3C, #C98B5E)" },
+  museum: { grad: "linear-gradient(150deg, #7D5FA6, #C98BC9)" },
+  shopping: { grad: "linear-gradient(150deg, #2E9E98, #5FC4BC)" },
+};
 const SHOW_COUNT = 15;
 
 const poiEntries = (list, catKey) => (list || []).map(item =>
@@ -68,6 +77,7 @@ export default function ExploreTab({ trip, poi, poiLoading, poiError, poiOffline
         const pool = poiEntries(poi?.[g.key], g.key);
         const seed = seeds[g.key] || 0;
         const shown = pool.length > SHOW_COUNT ? seededShuffle(pool, seed).slice(0, SHOW_COUNT) : pool;
+        const style = CATEGORY_STYLE[g.key];
         return (
           <div key={g.key}>
             <SectionLabel icon={g.icon}>{g.label}</SectionLabel>
@@ -84,18 +94,28 @@ export default function ExploreTab({ trip, poi, poiLoading, poiError, poiOffline
                     }}><Shuffle size={11} /> Başkalarını göster</button>
                   )}
                 </div>
-                {shown.map((item, i) => (
-                  <div key={item.name + i} style={{ display: "flex", gap: 10, background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: 10, marginBottom: 8 }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: T.amberDim,
-                      display: "flex", alignItems: "center", justifyContent: "center", color: T.amber,
-                    }}><g.icon size={17} /></div>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 14 }}>{item.name}</div>
-                      <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>{item.note}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 4 }}>
+                  {shown.map((item, i) => (
+                    <div key={item.name + i} style={{
+                      background: T.card, border: `1px solid ${T.border}`, borderRadius: 14,
+                      overflow: "hidden", boxShadow: T.shadowSoft, display: "flex", flexDirection: "column",
+                    }}>
+                      <div style={{ height: 58, background: style.grad, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <g.icon size={24} color="#FFF9F0" strokeWidth={1.6} />
+                      </div>
+                      <div style={{ padding: "8px 10px 10px" }}>
+                        <div style={{
+                          fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 13, lineHeight: 1.25,
+                          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                        }}>{item.name}</div>
+                        <div style={{
+                          fontSize: 10.5, color: T.muted, marginTop: 3, lineHeight: 1.3,
+                          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                        }}>{item.note}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </>
             )}
           </div>
