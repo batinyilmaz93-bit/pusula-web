@@ -11,7 +11,7 @@ export default function CurrencyTab({ trip, fx, fxLoading, fxOffline, lastUpdate
     <div>
       <LastUpdated ts={lastUpdated} loading={fxLoading} onRefresh={onRefresh} />
       {fxOffline && fx?.asOf && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(226,136,61,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(226,104,61,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
           <AlertTriangle size={13} color={T.amber} style={{ flexShrink: 0 }} />
           Canlı kur servisine ulaşılamadı — {fx.asOf} tarihli yaklaşık kur gösteriliyor.
         </div>
@@ -19,7 +19,7 @@ export default function CurrencyTab({ trip, fx, fxLoading, fxOffline, lastUpdate
       {error && <Empty text={error} />}
 
       <SectionLabel icon={TrendingUp}>Döviz Kuru {fx ? `(${fx.code} / TRY)` : ""}</SectionLabel>
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16, position: "relative", overflow: "hidden" }}>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16, position: "relative", overflow: "hidden", boxShadow: T.shadow }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
         {fx ? (
           <div style={{ marginTop: 6 }}>

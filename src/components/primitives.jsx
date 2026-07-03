@@ -8,7 +8,7 @@ export function Avatar({ member, size = 32 }) {
     <div style={{
       width: size, height: size, borderRadius: "50%", background: colorForId(member?.id || "?"),
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, color: "#101010",
+      fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, color: "#2A1C10",
       fontSize: size * 0.38, flexShrink: 0,
     }}>{initials(member?.name)}</div>
   );
@@ -26,12 +26,15 @@ export function Dashed() {
   return <div style={{ borderTop: `1.5px dashed ${T.dash}`, margin: "10px 0" }} />;
 }
 
+/* Signature motif: a soft "sunset over the sea" gradient bar — warm terracotta
+   easing through gold into the turquoise sea accent. Replaces the old hard
+   diagonal airmail stripes, which read as vintage/corporate rather than warm. */
 export function AirmailStripe({ height = 5 }) {
   return (
     <div style={{
       height, width: "100%",
-      background: `repeating-linear-gradient(-45deg, ${T.stripeRed} 0 10px, ${T.text} 10px 20px, ${T.teal} 20px 30px)`,
-      opacity: 0.85,
+      background: `linear-gradient(90deg, ${T.amber} 0%, #F2A65A 45%, ${T.teal} 100%)`,
+      opacity: 0.9,
     }} />
   );
 }

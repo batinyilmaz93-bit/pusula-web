@@ -63,7 +63,7 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
 
   return (
     <div>
-      <div style={{ background: `linear-gradient(135deg, ${T.cardAlt}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, position: "relative", overflow: "hidden" }}>
+      <div style={{ background: `linear-gradient(135deg, ${T.cardAlt}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, position: "relative", overflow: "hidden", boxShadow: T.shadow }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
           <div>
@@ -111,7 +111,7 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
         </button>
       </div>
       {memberWarning && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.dangerDim, border: `1px solid rgba(226,87,76,0.3)`, borderRadius: 10, padding: "8px 12px", marginTop: 8, fontSize: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.dangerDim, border: `1px solid rgba(214,69,69,0.3)`, borderRadius: 10, padding: "8px 12px", marginTop: 8, fontSize: 12 }}>
           <AlertTriangle size={13} color={T.danger} style={{ flexShrink: 0 }} />
           {memberWarning}
         </div>
@@ -142,7 +142,7 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
             {fx && currency !== "TRY" && <span style={{ display: "block", fontFamily: "'JetBrains Mono',monospace", color: T.muted, fontSize: 10.5 }}>≈ {fmtMoney(d.amount * fx.rate, "TRY")}</span>}
           </span>
           <button onClick={() => settleDebt(d)} title="Ödendi olarak işaretle" style={{
-            background: T.tealDim, border: `1px solid rgba(79,168,216,0.4)`, borderRadius: 8, padding: "5px 8px",
+            background: T.tealDim, border: `1px solid rgba(46,158,152,0.4)`, borderRadius: 8, padding: "5px 8px",
             color: T.teal, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11, flexShrink: 0,
           }}><HandCoins size={12} /> Öde</button>
         </div>

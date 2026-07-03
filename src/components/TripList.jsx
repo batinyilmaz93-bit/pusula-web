@@ -76,7 +76,7 @@ export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLog
       </div>
 
       {pendingInvite && mode === "join" && (
-        <div style={{ background: T.tealDim, border: `1px solid rgba(79,168,216,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
+        <div style={{ background: T.tealDim, border: `1px solid rgba(46,158,152,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
           Bir davet linkiyle geldin — davet kodu aşağıya otomatik dolduruldu, katılmak için "Katıl" de yeter.
         </div>
       )}
@@ -91,7 +91,7 @@ export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLog
       {trips.map(t => (
         <div key={t.id} onClick={() => onOpen(t.id)} style={{
           background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16,
-          marginBottom: 12, cursor: "pointer", position: "relative", overflow: "hidden",
+          marginBottom: 12, cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: T.shadowSoft,
         }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: 4 }}>

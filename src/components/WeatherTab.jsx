@@ -9,14 +9,14 @@ export default function WeatherTab({ trip, weather, wLoading, weatherOffline, la
     <div>
       <LastUpdated ts={lastUpdated} loading={wLoading} onRefresh={onRefresh} />
       {weatherOffline && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(226,136,61,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(226,104,61,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
           <AlertTriangle size={13} color={T.amber} style={{ flexShrink: 0 }} />
           Canlı hava servisine ulaşılamadı — {trip.city} için mevsim ortalamasına dayalı yaklaşık bir değer (anlık değil).
         </div>
       )}
       {error && <Empty text={error} />}
 
-      <div style={{ background: `linear-gradient(160deg, ${T.cardAlt}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 18, padding: 20, textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <div style={{ background: `linear-gradient(160deg, ${T.cardAlt}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 18, padding: 20, textAlign: "center", position: "relative", overflow: "hidden", boxShadow: T.shadow }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
         <div style={{ fontSize: 12, color: T.muted, marginTop: 8, marginBottom: 4 }}>{trip.city}, {trip.country}</div>
         <div style={{ fontSize: 48 }}>{weather ? weatherEmoji(weather.code) : "…"}</div>

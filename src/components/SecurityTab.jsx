@@ -26,7 +26,7 @@ export default function SecurityTab({ trip, actions, news, newsLoading, newsErro
         <button onClick={addHazard} disabled={busy} style={{ ...btnPrimary, flex: "none", padding: "9px 14px" }}>Ekle</button>
       </div>
       {(!trip.hazards || trip.hazards.length === 0) ? <Empty text="Henüz bir not eklenmedi." /> : trip.hazards.map(h => (
-        <div key={h.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, background: T.dangerDim, border: `1px solid rgba(226,87,76,0.3)`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
+        <div key={h.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, background: T.dangerDim, border: `1px solid rgba(214,69,69,0.3)`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
           <ShieldAlert size={15} color={T.danger} style={{ flexShrink: 0, marginTop: 1 }} />
           <span style={{ fontSize: 13, flex: 1 }}>{h.text}</span>
           <button onClick={() => removeHazard(h.id)} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer" }}><X size={13} /></button>

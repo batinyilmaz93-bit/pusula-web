@@ -240,13 +240,13 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
           <div style={{ fontSize: 11, color: T.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{trip.city}, {trip.country}</div>
         </div>
         <button onClick={shareInvite} title="Davet linkini paylaş" style={{
-          background: T.amberDim, border: `1px solid rgba(226,136,61,0.4)`, borderRadius: 10, padding: "6px 9px",
+          background: T.amberDim, border: `1px solid rgba(226,104,61,0.4)`, borderRadius: 10, padding: "6px 9px",
           color: T.amber, cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0,
         }}>
           <Share2 size={14} />
         </button>
         <button onClick={copyInvite} title="Davet kodunu kopyala" style={{
-          background: T.tealDim, border: `1px solid rgba(79,168,216,0.4)`, borderRadius: 10, padding: "6px 10px",
+          background: T.tealDim, border: `1px solid rgba(46,158,152,0.4)`, borderRadius: 10, padding: "6px 10px",
           color: T.teal, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, fontFamily: "'JetBrains Mono',monospace", flexShrink: 0,
         }}>
           {copied ? <Check size={12} /> : <Copy size={12} />} <span className="invite-code-text">{trip.inviteCode}</span>

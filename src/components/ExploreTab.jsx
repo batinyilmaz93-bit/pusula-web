@@ -48,7 +48,7 @@ export default function ExploreTab({ trip, poi, poiLoading, poiError, poiOffline
     <div>
       <LastUpdated ts={lastUpdated} loading={poiLoading} onRefresh={onRefresh} />
 
-      <div style={{ background: `linear-gradient(160deg, ${T.cardAlt}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, marginBottom: 6, position: "relative", overflow: "hidden" }}>
+      <div style={{ background: `linear-gradient(160deg, ${T.cardAlt}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, marginBottom: 6, position: "relative", overflow: "hidden", boxShadow: T.shadow }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
         <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 18, fontWeight: 600, marginTop: 8 }}>{trip.city} günlüğü ✈️</div>
         <div style={{ fontSize: 12, color: T.muted, marginTop: 4 }}>
@@ -57,7 +57,7 @@ export default function ExploreTab({ trip, poi, poiLoading, poiError, poiOffline
       </div>
 
       {poiOffline && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(226,136,61,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(226,104,61,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
           <AlertTriangle size={13} color={T.amber} style={{ flexShrink: 0 }} />
           Canlı yer servisine şu an ulaşılamadı, {trip.city} için önceden hazırlanmış (daha kısa) bir günlük gösteriliyor.
         </div>
