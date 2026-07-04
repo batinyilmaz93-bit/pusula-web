@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { T, FONTS } from "./lib/theme.js";
 import { getAuth, clearAuth, onUnauthorized } from "./lib/api.js";
-import NameGate from "./components/NameGate.jsx";
+import Login from "./components/Login.jsx";
 import TripList from "./components/TripList.jsx";
 import TripDetail from "./components/TripDetail.jsx";
 
@@ -18,10 +18,23 @@ function readInviteFromUrl() {
   return null;
 }
 
+function readResetTokenFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("resetToken");
+    if (token) {
+      window.history.replaceState({}, "", window.location.pathname);
+      return token;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
 export default function App() {
   const [authed, setAuthed] = useState(!!getAuth()?.token);
   const [activeTripId, setActiveTripId] = useState(null);
   const [pendingInvite, setPendingInvite] = useState(() => readInviteFromUrl());
+  const [resetToken] = useState(() => readResetTokenFromUrl());
   const [sessionMsg, setSessionMsg] = useState("");
 
   useEffect(() => {
@@ -57,7 +70,7 @@ export default function App() {
       `}</style>
 
       {!authed ? (
-        <NameGate onReady={handleReady} message={sessionMsg} />
+        <Login onReady={handleReady} message={sessionMsg} initialResetToken={resetToken} />
       ) : activeTripId ? (
         <TripDetail tripId={activeTripId} onBack={() => setActiveTripId(null)} onLogout={handleLogout} />
       ) : (

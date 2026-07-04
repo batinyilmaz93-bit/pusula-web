@@ -23,6 +23,16 @@ export default function CurrencyTab({ trip, fx, fxLoading, fxOffline, lastUpdate
         <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
         {fx ? (
           <div style={{ marginTop: 6 }}>
+            {fx.source === "TCMB" && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: T.navyDim, borderRadius: 20, padding: "3px 10px", marginBottom: 10, fontSize: 10.5, color: T.navy, fontWeight: 600 }}>
+                🏦 Kaynak: TCMB (T.C. Merkez Bankası)
+              </div>
+            )}
+            {fx.source === "diger" && !fxOffline && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: T.tealDim, borderRadius: 20, padding: "3px 10px", marginBottom: 10, fontSize: 10.5, color: T.teal, fontWeight: 600 }}>
+                🌐 Kaynak: uluslararası kur servisi (TCMB'de bu para birimi yok/erişilemedi)
+              </div>
+            )}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 13 }}>1 {fx.code}</span>
               <span style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, color: T.amber, fontSize: 17 }}>{fx.rate.toFixed(4)} TRY</span>

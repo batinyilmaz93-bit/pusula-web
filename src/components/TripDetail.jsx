@@ -1,12 +1,18 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Wallet, Compass, TrendingUp, Cloud, ShieldAlert, ChevronLeft, Copy, Check, Share2, LogOut } from "lucide-react";
+import { Menu, Copy, Check, Share2, LogOut, Home, Wallet, Compass, ShieldAlert } from "lucide-react";
 import { T } from "../lib/theme.js";
 import { AirmailStripe, Empty, Spinner } from "./primitives.jsx";
+import Sidebar from "./Sidebar.jsx";
+import HomeTab from "./HomeTab.jsx";
 import BudgetTab from "./BudgetTab.jsx";
-import ExploreTab from "./ExploreTab.jsx";
+import ExploreHub from "./ExploreHub.jsx";
+import CategoryPage from "./CategoryPage.jsx";
 import WeatherTab from "./WeatherTab.jsx";
 import CurrencyTab from "./CurrencyTab.jsx";
 import SecurityTab from "./SecurityTab.jsx";
+import VlogTab from "./VlogTab.jsx";
+import MapTab from "./MapTab.jsx";
+import Profile from "./Profile.jsx";
 import {
   getTrip, deleteTripApi, addMemberApi, removeMemberApi, addExpenseApi, deleteExpenseApi,
   settleDebtApi, addHazardApi, deleteHazardApi, leaveTripApi, updateTripCurrencyApi,
@@ -22,7 +28,8 @@ const DATA_REFRESH_MS = 3 * 60 * 1000;
 export default function TripDetail({ tripId, onBack, onLogout }) {
   const [trip, setTrip] = useState(null);
   const [loadError, setLoadError] = useState("");
-  const [tab, setTab] = useState("budget");
+  const [view, setView] = useState("home");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const [weather, setWeather] = useState(null);
@@ -32,13 +39,13 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
   const [poi, setPoi] = useState(null);
   const [poiOffline, setPoiOffline] = useState(false);
   const [news, setNews] = useState(null);
+  const [geoInfo, setGeoInfo] = useState(null);
   const [loading, setLoading] = useState({ weather: false, fx: false, poi: false, news: false });
   const [errors, setErrors] = useState({});
   const [ts, setTs] = useState({});
   const geoRef = useRef(null);
   const geoPromiseRef = useRef(null);
 
-  // ---- load trip + realtime subscription ----
   useEffect(() => {
     let cancelled = false;
     getTrip(tripId).then(t => { if (!cancelled) setTrip(t); }).catch(e => setLoadError(e.message));
@@ -56,13 +63,6 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
     };
   }, [tripId]); // eslint-disable-line
 
-  // ---- geocode (shared by weather + poi) ----
-  // Returns coordinates from the live geocoder when possible; if that fails
-  // but the city matches our curated offline table, we still return THAT
-  // table's real lat/lon (so live Overpass/weather calls can still be
-  // attempted — a geocoding hiccup alone should never force the tiny
-  // hardcoded fallback content when we already have good coordinates).
-  // Only returns null if we truly have no coordinates from any source.
   const resolveGeo = useCallback(async () => {
     if (!trip) return null;
     if (geoRef.current) return geoRef.current;
@@ -79,6 +79,7 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
       })();
     }
     geoRef.current = await geoPromiseRef.current;
+    setGeoInfo(geoRef.current);
     return geoRef.current;
   }, [trip?.city, trip?.country]); // eslint-disable-line
 
@@ -163,7 +164,7 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
 
   useEffect(() => {
     if (!trip) return;
-    geoRef.current = null; geoPromiseRef.current = null;
+    geoRef.current = null; geoPromiseRef.current = null; setGeoInfo(null);
     refreshWeather(); refreshCurrency(); refreshExplore();
     const ivW = setInterval(refreshWeather, WEATHER_REFRESH_MS);
     const ivD = setInterval(() => { refreshCurrency(); refreshExplore(); }, DATA_REFRESH_MS);
@@ -220,23 +221,31 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
     }
   };
 
-  const tabs = [
+  const bottomTabs = [
+    { key: "home", label: "Ana Sayfa", icon: Home },
     { key: "budget", label: "Bütçe", icon: Wallet },
     { key: "explore", label: "Keşfet", icon: Compass },
-    { key: "weather", label: "Hava", icon: Cloud },
-    { key: "currency", label: "Kur", icon: TrendingUp },
     { key: "security", label: "Güvenlik", icon: ShieldAlert },
   ];
+  const isCategory = view.startsWith("category:");
+  const categoryKey = isCategory ? view.split(":")[1] : null;
+  const activeBottomKey = isCategory ? "explore" : view;
 
   return (
     <div>
+      <Sidebar
+        open={sidebarOpen} onClose={() => setSidebarOpen(false)}
+        view={isCategory ? "explore" : view} setView={setView}
+        tripName={trip.name} onBackToList={onBack} onLogout={onLogout}
+      />
+
       <div style={{
         position: "sticky", top: 0, background: T.headerBar, zIndex: 5,
         padding: "calc(16px + env(safe-area-inset-top)) 16px 14px", display: "flex", alignItems: "center", gap: 10,
         boxShadow: "0 4px 16px rgba(193,68,59,0.22)",
       }}>
-        <button onClick={onBack} style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 10, padding: 9, color: "#FFF9F0", cursor: "pointer", display: "flex", flexShrink: 0 }}>
-          <ChevronLeft size={18} />
+        <button onClick={() => setSidebarOpen(true)} style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 10, padding: 9, color: "#FFF9F0", cursor: "pointer", display: "flex", flexShrink: 0 }}>
+          <Menu size={18} />
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 18, color: "#FFF9F0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{trip.name}</div>
@@ -257,12 +266,23 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
       </div>
 
       <div style={{ padding: "14px 16px 100px" }}>
-        {tab === "budget" && <BudgetTab trip={trip} fx={fx} actions={actions} myMemberId={myMember?.id} />}
-        {tab === "explore" && <ExploreTab trip={trip} poi={poi} poiLoading={loading.poi} poiError={errors.poi} poiOffline={poiOffline} lastUpdated={ts.poi} onRefresh={refreshExplore} />}
-        {tab === "weather" && <WeatherTab trip={trip} weather={weather} wLoading={loading.weather} weatherOffline={weatherOffline} lastUpdated={ts.weather} onRefresh={refreshWeather} error={errors.weather} />}
-        {tab === "currency" && <CurrencyTab trip={trip} fx={fx} fxLoading={loading.fx} fxOffline={fxOffline} lastUpdated={ts.fx} onRefresh={refreshCurrency} error={errors.fx} />}
-        {tab === "security" && <SecurityTab trip={trip} actions={actions} news={news} newsLoading={loading.news} newsError={errors.news} lastUpdated={ts.news} onRefresh={refreshExplore} />}
-        {tab === "budget" && (
+        {view === "home" && <HomeTab trip={trip} fx={fx} weather={weather} setView={setView} />}
+        {view === "budget" && <BudgetTab trip={trip} fx={fx} actions={actions} myMemberId={myMember?.id} />}
+        {view === "explore" && <ExploreHub trip={trip} poi={poi} poiOffline={poiOffline} setView={setView} />}
+        {isCategory && (
+          <CategoryPage
+            trip={trip} categoryKey={categoryKey} poi={poi} poiLoading={loading.poi} poiOffline={poiOffline}
+            poiError={errors.poi} lastUpdated={ts.poi} onRefresh={refreshExplore} onBack={() => setView("explore")}
+          />
+        )}
+        {view === "weather" && <WeatherTab trip={trip} weather={weather} wLoading={loading.weather} weatherOffline={weatherOffline} lastUpdated={ts.weather} onRefresh={refreshWeather} error={errors.weather} />}
+        {view === "currency" && <CurrencyTab trip={trip} fx={fx} fxLoading={loading.fx} fxOffline={fxOffline} lastUpdated={ts.fx} onRefresh={refreshCurrency} error={errors.fx} />}
+        {view === "security" && <SecurityTab trip={trip} actions={actions} news={news} newsLoading={loading.news} newsError={errors.news} lastUpdated={ts.news} onRefresh={refreshExplore} />}
+        {view === "vlog" && <VlogTab trip={trip} weather={weather} poi={poi} />}
+        {view === "map" && <MapTab trip={trip} geo={geoInfo} />}
+        {view === "profile" && <Profile />}
+
+        {view === "budget" && (
           <div style={{ marginTop: 18, display: "flex", gap: 14 }}>
             {isAdmin && (
               <button onClick={deleteTrip} style={{ background: "none", border: "none", color: T.muted, fontSize: 11.5, textDecoration: "underline", cursor: "pointer" }}>
@@ -281,15 +301,22 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: T.surface, borderTop: `1px solid ${T.border}` }}>
         <AirmailStripe height={3} />
         <div style={{ display: "flex", padding: "8px 4px calc(8px + env(safe-area-inset-bottom))" }}>
-          {tabs.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} style={{
+          {bottomTabs.map(t => (
+            <button key={t.key} onClick={() => setView(t.key)} style={{
               flex: 1, background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 3, padding: "6px 0", cursor: "pointer", color: tab === t.key ? T.amber : T.muted,
+              gap: 3, padding: "6px 0", cursor: "pointer", color: activeBottomKey === t.key ? T.amber : T.muted,
             }}>
-              <t.icon size={19} />
-              <span style={{ fontSize: 10, fontFamily: "'Inter',sans-serif", fontWeight: tab === t.key ? 600 : 400 }}>{t.label}</span>
+              <t.icon size={18} />
+              <span style={{ fontSize: 10, fontFamily: "'Inter',sans-serif", fontWeight: activeBottomKey === t.key ? 600 : 400 }}>{t.label}</span>
             </button>
           ))}
+          <button onClick={() => setSidebarOpen(true)} style={{
+            flex: 1, background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center",
+            gap: 3, padding: "6px 0", cursor: "pointer", color: T.muted,
+          }}>
+            <Menu size={17} />
+            <span style={{ fontSize: 10 }}>Daha Fazla</span>
+          </button>
         </div>
       </div>
     </div>

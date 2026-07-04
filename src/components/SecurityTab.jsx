@@ -1,7 +1,16 @@
 import React, { useState } from "react";
-import { AlertTriangle, ShieldAlert, X, Newspaper, MapPinned, PhoneCall } from "lucide-react";
+import { AlertTriangle, ShieldAlert, ShieldCheck, X, Newspaper, MapPinned, PhoneCall } from "lucide-react";
 import { T, btnPrimary } from "../lib/theme.js";
 import { SectionLabel, Empty, LastUpdated } from "./primitives.jsx";
+
+const SAFETY_TIPS = [
+  { icon: "🧳", text: "Değerli eşyalarını (pasaport, kart, nakit) tek bir çantada toplama; birden fazla yere dağıt." },
+  { icon: "📍", text: "Konumunu seyahat arkadaşlarınla paylaş, özellikle gece dışarı çıkarken." },
+  { icon: "🚕", text: "Resmi olmayan taksi/araç tekliflerine karşı dikkatli ol, uygulama üzerinden çağırmayı tercih et." },
+  { icon: "💳", text: "Kart bilgilerini halka açık Wi-Fi üzerinden girmekten kaçın." },
+  { icon: "🏥", text: "En yakın hastane/konsolosluk bilgisini seyahat başlamadan not al." },
+  { icon: "📄", text: "Pasaport ve önemli belgelerin fotoğrafını çekip bulutta yedekle." },
+];
 
 export default function SecurityTab({ trip, actions, news, newsLoading, newsError, lastUpdated, onRefresh }) {
   const [hazard, setHazard] = useState("");
@@ -47,6 +56,19 @@ export default function SecurityTab({ trip, actions, news, newsLoading, newsErro
           <button onClick={() => removeHazard(h.id)} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer" }}><X size={13} /></button>
         </div>
       ))}
+
+      <SectionLabel icon={ShieldCheck}>Genel Seyahat Güvenliği İpuçları</SectionLabel>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "6px 14px", boxShadow: T.shadowSoft, marginBottom: 6 }}>
+        {SAFETY_TIPS.map((tip, i) => (
+          <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 0", borderTop: i > 0 ? `1px solid ${T.border}` : "none" }}>
+            <span style={{ fontSize: 15, flexShrink: 0 }}>{tip.icon}</span>
+            <span style={{ fontSize: 12.5, color: T.text, lineHeight: 1.5 }}>{tip.text}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 6 }}>
+        Bunlar her şehir için geçerli genel öneriler — {trip.city} için özel olarak "gerçekten tehlikeli" diye belirli sokak adları uydurmuyoruz, çünkü doğrulanmamış böyle bir bilgi yanlış yönlendirebilir. Yerel/güncel riskleri en iyi yukarıdaki topluluk notları ve resmi seyahat uyarıları (Dışişleri Bakanlığı) yansıtır.
+      </div>
 
       <div style={{ marginTop: 6 }}>
         <SectionLabel icon={Newspaper}>Son Dakika Haberler</SectionLabel>

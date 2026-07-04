@@ -61,6 +61,11 @@ const SHORT_RETRY = [0, 1000, 2000, 3000]; // ~6s — used where a good fallback
 
 /* ---- auth ---- */
 export const registerDevice = (name) => request("/api/auth/device", { method: "POST", body: { name }, auth: false });
+export const registerApi = (email, password, name) => request("/api/auth/register", { method: "POST", body: { email, password, name }, auth: false });
+export const loginApi = (email, password) => request("/api/auth/login", { method: "POST", body: { email, password }, auth: false });
+export const requestResetApi = (email) => request("/api/auth/request-reset", { method: "POST", body: { email }, auth: false });
+export const confirmResetApi = (token, password) => request("/api/auth/confirm-reset", { method: "POST", body: { token, password }, auth: false });
+export const updateProfileApi = (name) => request("/api/auth/profile", { method: "PATCH", body: { name } });
 
 /* ---- trips ---- */
 export const listTrips = () => request("/api/trips");
