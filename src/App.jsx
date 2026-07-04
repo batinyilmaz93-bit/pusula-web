@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { T, FONTS } from "./lib/theme.js";
+import React, { useEffect, useReducer, useState } from "react";
+import { T, FONTS, applyTheme, onThemeChange } from "./lib/theme.js";
+import { setLanguage, onLanguageChange } from "./lib/i18n.js";
 import { getAuth, clearAuth, onUnauthorized } from "./lib/api.js";
 import Login from "./components/Login.jsx";
 import TripList from "./components/TripList.jsx";
@@ -36,6 +37,20 @@ export default function App() {
   const [pendingInvite, setPendingInvite] = useState(() => readInviteFromUrl());
   const [resetToken] = useState(() => readResetTokenFromUrl());
   const [sessionMsg, setSessionMsg] = useState("");
+  const [, forceThemeRerender] = useReducer(x => x + 1, 0);
+
+  // Runs once, synchronously, before first paint — applies the saved theme
+  // (or system preference on first-ever visit) so there's no flash of the
+  // wrong theme.
+  useState(() => {
+    try {
+      const saved = localStorage.getItem("pusula_theme_mode");
+      const mode = saved || (window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      applyTheme(mode);
+      const savedLang = localStorage.getItem("pusula_lang");
+      if (savedLang) setLanguage(savedLang);
+    } catch { /* ignore */ }
+  });
 
   useEffect(() => {
     onUnauthorized(() => {
@@ -43,6 +58,9 @@ export default function App() {
       setAuthed(false);
       setActiveTripId(null);
     });
+    const offTheme = onThemeChange(forceThemeRerender);
+    const offLang = onLanguageChange(forceThemeRerender);
+    return () => { offTheme(); offLang(); };
   }, []);
 
   const handleReady = () => { setSessionMsg(""); setAuthed(true); };

@@ -10,6 +10,31 @@ const AVATAR_COLORS = ["#E2683D", "#2E9E98", "#E8956A", "#D64545", "#4CA771", "#
 export const colorForId = (id) => AVATAR_COLORS[[...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLORS.length];
 export const safeConfirm = (msg) => { try { return window.confirm(msg); } catch { return true; } };
 
+// Resize + compress an image file to a reasonably small base64 JPEG before
+// sending it to the server — keeps receipt photos well under the request
+// size limit without needing any external image-processing service.
+export function compressImageFile(file, maxDim = 800, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Dosya okunamadı"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Görsel yüklenemedi"));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxDim) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+        else if (height > maxDim) { width = Math.round(width * (maxDim / height)); height = maxDim; }
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export function weatherEmoji(code) {
   if (code === 0) return "☀️";
   if ([1, 2, 3].includes(code)) return "⛅";

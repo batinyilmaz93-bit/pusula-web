@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Wallet, Users, Receipt, ArrowRightLeft, Crown, X, UserPlus, Plus, Check,
   Trash2, HandCoins, Utensils, Car, Bed, Ticket, ShoppingBag, MoreHorizontal, AlertTriangle,
+  Search, Camera, ImageOff,
 } from "lucide-react";
 import { T, btnPrimary, btnGhost } from "../lib/theme.js";
 import { Avatar, SectionLabel, Dashed, Empty, Field, AirmailStripe, StampBadge, DonutChart } from "./primitives.jsx";
-import { fmtMoney, computeBalances, simplifyDebts, safeConfirm } from "../lib/utils.js";
+import { fmtMoney, computeBalances, simplifyDebts, safeConfirm, compressImageFile } from "../lib/utils.js";
 
 const EXPENSE_CATEGORIES = [
   { key: "yeme-icme", label: "Yeme-içme", icon: Utensils, color: "#E2683D" },
@@ -27,6 +28,13 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
   const [memberWarning, setMemberWarning] = useState("");
   const [busy, setBusy] = useState(false);
   const [exp, setExp] = useState({ desc: "", amount: "", category: "diger", paidBy: trip.admin, splitAmong: trip.members.map(m => m.id) });
+  const [expenseSearch, setExpenseSearch] = useState("");
+  const [expenseCategoryFilter, setExpenseCategoryFilter] = useState(null); // null = all
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+  const [lightbox, setLightbox] = useState(null);
+  const fileInputRef = useRef(null);
 
   const net = computeBalances(trip);
   const debts = simplifyDebts(net);
@@ -38,6 +46,11 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
     value: trip.expenses.filter(e => !e.isSettlement && e.category === c.key).reduce((s, e) => s + e.amount, 0),
   })).filter(c => c.value > 0).sort((a, b) => b.value - a.value);
   const spendTotal = categoryTotals.reduce((s, c) => s + c.value, 0);
+  const filteredExpenses = trip.expenses.filter(e => {
+    if (expenseCategoryFilter && e.category !== expenseCategoryFilter) return false;
+    if (expenseSearch.trim() && !e.desc.toLocaleLowerCase("tr-TR").includes(expenseSearch.trim().toLocaleLowerCase("tr-TR"))) return false;
+    return true;
+  });
 
   const addMember = async () => {
     if (!memberName.trim()) return;
@@ -61,10 +74,25 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
     if (!desc || !amt || amt <= 0 || exp.splitAmong.length === 0) return;
     setBusy(true);
     try {
-      await actions.addExpense({ desc, amount: amt, category: exp.category, paidBy: exp.paidBy, splitAmong: exp.splitAmong });
+      await actions.addExpense({ desc, amount: amt, category: exp.category, paidBy: exp.paidBy, splitAmong: exp.splitAmong, receiptPhoto: photoPreview || undefined });
       setExp({ desc: "", amount: "", category: "diger", paidBy: trip.admin, splitAmong: trip.members.map(m => m.id) });
+      setPhotoPreview(null); setPhotoError("");
       setShowAddExpense(false);
     } finally { setBusy(false); }
+  };
+  const handlePhotoSelect = async (file) => {
+    if (!file) return;
+    setPhotoError("");
+    if (!file.type.startsWith("image/")) { setPhotoError("Sadece görsel dosyası yükleyebilirsin."); return; }
+    setPhotoBusy(true);
+    try {
+      const dataUrl = await compressImageFile(file);
+      setPhotoPreview(dataUrl);
+    } catch (e) {
+      setPhotoError(e.message || "Fotoğraf işlenemedi.");
+    } finally {
+      setPhotoBusy(false);
+    }
   };
   const deleteExpense = (id) => {
     if (safeConfirm("Bu harcamayı silmek istediğine emin misin?")) actions.deleteExpense(id);
@@ -185,20 +213,48 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
       ))}
 
       <SectionLabel icon={Wallet}>Harcamalar</SectionLabel>
+      {trip.expenses.length > 0 && !showAddExpense && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ position: "relative", marginBottom: 8 }}>
+            <Search size={14} color={T.muted} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+            <input value={expenseSearch} onChange={e => setExpenseSearch(e.target.value)} placeholder="Harcama ara..."
+              style={{ width: "100%", background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px 9px 34px", color: T.text, fontSize: 16, boxSizing: "border-box" }} />
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <button onClick={() => setExpenseCategoryFilter(null)} style={{
+              padding: "5px 10px", borderRadius: 20, border: `1px solid ${!expenseCategoryFilter ? T.amber : T.border}`,
+              background: !expenseCategoryFilter ? T.amberDim : "transparent", color: T.text, fontSize: 11.5, cursor: "pointer",
+            }}>Tümü</button>
+            {EXPENSE_CATEGORIES.map(c => (
+              <button key={c.key} onClick={() => setExpenseCategoryFilter(f => f === c.key ? null : c.key)} style={{
+                display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 20,
+                border: `1px solid ${expenseCategoryFilter === c.key ? T.amber : T.border}`,
+                background: expenseCategoryFilter === c.key ? T.amberDim : "transparent", color: T.text, fontSize: 11.5, cursor: "pointer",
+              }}><c.icon size={11} />{c.label}</button>
+            ))}
+          </div>
+        </div>
+      )}
       {trip.expenses.length === 0 && <Empty text="Henüz harcama eklenmedi." />}
-      {trip.expenses.map(e => {
+      {trip.expenses.length > 0 && filteredExpenses.length === 0 && <Empty text="Bu aramaya/kategoriye uyan harcama yok." />}
+      {filteredExpenses.map(e => {
         const CatIcon = categoryIcon(e.category);
         return (
           <div key={e.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 14px", marginBottom: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div style={{ display: "flex", gap: 10, minWidth: 0 }}>
-                <div style={{
-                  width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                  background: e.isSettlement ? T.tealDim : `${categoryColor(e.category)}22`,
-                  color: e.isSettlement ? T.teal : categoryColor(e.category),
-                }}>
-                  {e.isSettlement ? <HandCoins size={14} /> : <CatIcon size={14} />}
-                </div>
+                {e.receiptPhoto ? (
+                  <img src={e.receiptPhoto} onClick={() => setLightbox(e.receiptPhoto)} alt="Fiş"
+                    style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, objectFit: "cover", cursor: "pointer" }} />
+                ) : (
+                  <div style={{
+                    width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                    background: e.isSettlement ? T.tealDim : `${categoryColor(e.category)}22`,
+                    color: e.isSettlement ? T.teal : categoryColor(e.category),
+                  }}>
+                    {e.isSettlement ? <HandCoins size={14} /> : <CatIcon size={14} />}
+                  </div>
+                )}
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{e.desc}</div>
                   <div style={{ fontSize: 11.5, color: T.muted, marginTop: 2 }}>
@@ -219,6 +275,15 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
           </div>
         );
       })}
+
+      {lightbox && (
+        <div onClick={() => setLightbox(null)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 50,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: 24, cursor: "zoom-out",
+        }}>
+          <img src={lightbox} alt="Fiş büyük" style={{ maxWidth: "100%", maxHeight: "100%", borderRadius: 12 }} />
+        </div>
+      )}
 
       {!showAddExpense && (
         <button onClick={() => setShowAddExpense(true)} style={{ ...btnPrimary, width: "100%", marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
@@ -263,6 +328,29 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
               }}>{exp.splitAmong.includes(m.id) && <Check size={11} />}{m.name}</button>
             ))}
           </div>
+
+          <div style={{ fontSize: 11, color: T.muted, margin: "8px 0 5px" }}>Fiş fotoğrafı (opsiyonel)</div>
+          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }}
+            onChange={e => handlePhotoSelect(e.target.files?.[0])} />
+          {!photoPreview ? (
+            <button onClick={() => fileInputRef.current?.click()} disabled={photoBusy} style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%",
+              background: T.cardAlt, border: `1.5px dashed ${T.dash}`, borderRadius: 10, padding: "10px", color: T.teal,
+              fontSize: 13, cursor: "pointer", marginBottom: 12,
+            }}>
+              <Camera size={15} /> {photoBusy ? "İşleniyor..." : "Fotoğraf Ekle"}
+            </button>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <img src={photoPreview} alt="Önizleme" style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover" }} />
+              <button onClick={() => { setPhotoPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }} style={{
+                display: "flex", alignItems: "center", gap: 5, background: T.dangerDim, border: "none", borderRadius: 8,
+                padding: "7px 10px", color: T.danger, fontSize: 12, cursor: "pointer",
+              }}><ImageOff size={13} /> Kaldır</button>
+            </div>
+          )}
+          {photoError && <div style={{ color: T.danger, fontSize: 11.5, marginBottom: 10 }}>{photoError}</div>}
+
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={submitExpense} disabled={busy} style={btnPrimary}>{busy ? "Kaydediliyor..." : "Kaydet"}</button>
             <button onClick={() => setShowAddExpense(false)} style={btnGhost}>Vazgeç</button>

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Menu, Copy, Check, Share2, LogOut, Home, Wallet, Compass, ShieldAlert } from "lucide-react";
 import { T } from "../lib/theme.js";
+import { L } from "../lib/i18n.js";
 import { AirmailStripe, Empty, Spinner } from "./primitives.jsx";
 import Sidebar from "./Sidebar.jsx";
 import HomeTab from "./HomeTab.jsx";
@@ -222,10 +223,10 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
   };
 
   const bottomTabs = [
-    { key: "home", label: "Ana Sayfa", icon: Home },
-    { key: "budget", label: "Bütçe", icon: Wallet },
-    { key: "explore", label: "Keşfet", icon: Compass },
-    { key: "security", label: "Güvenlik", icon: ShieldAlert },
+    { key: "home", label: L.navHome, icon: Home },
+    { key: "budget", label: L.navBudget, icon: Wallet },
+    { key: "explore", label: L.navExplore, icon: Compass },
+    { key: "security", label: L.navSecurity, icon: ShieldAlert },
   ];
   const isCategory = view.startsWith("category:");
   const categoryKey = isCategory ? view.split(":")[1] : null;

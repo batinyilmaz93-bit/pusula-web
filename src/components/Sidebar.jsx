@@ -4,20 +4,22 @@ import {
   User, ChevronLeft, LogOut,
 } from "lucide-react";
 import { T } from "../lib/theme.js";
-
-const ITEMS = [
-  { key: "home", label: "Ana Sayfa", icon: Home },
-  { key: "budget", label: "Bütçe", icon: Wallet },
-  { key: "explore", label: "Keşfet", icon: Compass },
-  { key: "weather", label: "Hava Durumu", icon: Cloud },
-  { key: "currency", label: "Döviz Kuru", icon: TrendingUp },
-  { key: "security", label: "Güvenlik", icon: ShieldAlert },
-  { key: "vlog", label: "Seyahat Vlogu", icon: Film },
-  { key: "map", label: "Harita", icon: MapIcon },
-  { key: "profile", label: "Profilim", icon: User },
-];
+import { L } from "../lib/i18n.js";
 
 export default function Sidebar({ open, onClose, view, setView, tripName, onBackToList, onLogout }) {
+  // Built at render time (not module load time) so labels reflect the
+  // current language whenever the user switches it.
+  const ITEMS = [
+    { key: "home", label: L.navHome, icon: Home },
+    { key: "budget", label: L.navBudget, icon: Wallet },
+    { key: "explore", label: L.navExplore, icon: Compass },
+    { key: "weather", label: L.navWeather, icon: Cloud },
+    { key: "currency", label: L.navCurrency, icon: TrendingUp },
+    { key: "security", label: L.navSecurity, icon: ShieldAlert },
+    { key: "vlog", label: L.navVlog, icon: Film },
+    { key: "map", label: L.navMap, icon: MapIcon },
+    { key: "profile", label: L.navProfile, icon: User },
+  ];
   return (
     <>
       <div onClick={onClose} style={{
@@ -56,13 +58,13 @@ export default function Sidebar({ open, onClose, view, setView, tripName, onBack
             width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 12px",
             borderRadius: 10, border: "none", cursor: "pointer", background: "transparent", color: T.muted, fontSize: 13.5,
           }}>
-            <ChevronLeft size={17} /> Seyahatlere Dön
+            <ChevronLeft size={17} /> {L.backToTrips}
           </button>
           <button onClick={onLogout} style={{
             width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 12px",
             borderRadius: 10, border: "none", cursor: "pointer", background: "transparent", color: T.danger, fontSize: 13.5,
           }}>
-            <LogOut size={17} /> Çıkış Yap
+            <LogOut size={17} /> {L.logout}
           </button>
         </div>
       </div>

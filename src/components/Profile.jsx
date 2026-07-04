@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { User, Check } from "lucide-react";
-import { T, btnPrimary } from "../lib/theme.js";
-import { Field } from "./primitives.jsx";
+import { User, Check, Sun, Moon, Globe } from "lucide-react";
+import { T, btnPrimary, applyTheme } from "../lib/theme.js";
+import { L, setLanguage } from "../lib/i18n.js";
+import { Field, SectionLabel } from "./primitives.jsx";
 import { getAuth, setAuth, updateProfileApi } from "../lib/api.js";
 
 export default function Profile() {
@@ -10,6 +11,23 @@ export default function Profile() {
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState(() => {
+    try { return localStorage.getItem("pusula_theme_mode") || "light"; } catch { return "light"; }
+  });
+  const [lang, setLang] = useState(() => {
+    try { return localStorage.getItem("pusula_lang") || "tr"; } catch { return "tr"; }
+  });
+
+  const changeTheme = (newMode) => {
+    applyTheme(newMode);
+    try { localStorage.setItem("pusula_theme_mode", newMode); } catch { /* ignore */ }
+    setMode(newMode);
+  };
+  const changeLanguage = (newLang) => {
+    setLanguage(newLang);
+    try { localStorage.setItem("pusula_lang", newLang); } catch { /* ignore */ }
+    setLang(newLang);
+  };
 
   const save = async () => {
     setError(""); setSaved(false);
@@ -56,6 +74,33 @@ export default function Profile() {
           Bu hesap eski (e-postasız) bir oturum — şifre sıfırlama gibi özellikler için çıkış yapıp e-posta ile kayıt olman gerekir.
         </div>
       )}
+
+      <SectionLabel icon={Sun}>{L.appearance}</SectionLabel>
+      <div style={{ display: "flex", gap: 8, background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 6, boxShadow: T.shadowSoft }}>
+        <button onClick={() => changeTheme("light")} style={{
+          flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px", borderRadius: 10, border: "none", cursor: "pointer",
+          background: mode === "light" ? T.amber : "transparent", color: mode === "light" ? T.buttonTextOnAccent || "#FFF9F0" : T.muted, fontWeight: 600, fontSize: 13.5,
+        }}><Sun size={15} /> {L.light}</button>
+        <button onClick={() => changeTheme("dark")} style={{
+          flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px", borderRadius: 10, border: "none", cursor: "pointer",
+          background: mode === "dark" ? T.amber : "transparent", color: mode === "dark" ? "#101820" : T.muted, fontWeight: 600, fontSize: 13.5,
+        }}><Moon size={15} /> {L.dark}</button>
+      </div>
+
+      <SectionLabel icon={Globe}>{L.language}</SectionLabel>
+      <div style={{ display: "flex", gap: 8, background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 6, boxShadow: T.shadowSoft }}>
+        <button onClick={() => changeLanguage("tr")} style={{
+          flex: 1, padding: "10px", borderRadius: 10, border: "none", cursor: "pointer",
+          background: lang === "tr" ? T.amber : "transparent", color: lang === "tr" ? (T.buttonTextOnAccent || "#FFF9F0") : T.muted, fontWeight: 600, fontSize: 13.5,
+        }}>Türkçe</button>
+        <button onClick={() => changeLanguage("en")} style={{
+          flex: 1, padding: "10px", borderRadius: 10, border: "none", cursor: "pointer",
+          background: lang === "en" ? T.amber : "transparent", color: lang === "en" ? (T.buttonTextOnAccent || "#FFF9F0") : T.muted, fontWeight: 600, fontSize: 13.5,
+        }}>English</button>
+      </div>
+      <div style={{ fontSize: 10.5, color: T.muted, marginTop: 8, textAlign: "center", lineHeight: 1.5 }}>
+        Şu an sadece menü/başlık gibi ana metinler çevriliyor, her açıklama metni değil.
+      </div>
     </div>
   );
 }
