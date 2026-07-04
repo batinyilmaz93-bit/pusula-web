@@ -76,7 +76,7 @@ export const deleteTripApi = (id) => request(`/api/trips/${id}`, { method: "DELE
 export const updateTripCurrencyApi = (tripId, currencyCode) => request(`/api/trips/${tripId}`, { method: "PATCH", body: { currencyCode } });
 
 /* ---- members ---- */
-export const addMemberApi = (tripId, name) => request(`/api/trips/${tripId}/members`, { method: "POST", body: { name } });
+export const addMemberApi = (tripId, name, email) => request(`/api/trips/${tripId}/members`, { method: "POST", body: { name, email } });
 export const removeMemberApi = (tripId, memberId) => request(`/api/trips/${tripId}/members/${memberId}`, { method: "DELETE" });
 export const leaveTripApi = (tripId, myMemberId) => removeMemberApi(tripId, myMemberId);
 

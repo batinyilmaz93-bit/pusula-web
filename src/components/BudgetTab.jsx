@@ -23,6 +23,7 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [memberName, setMemberName] = useState("");
+  const [memberEmail, setMemberEmail] = useState("");
   const [memberWarning, setMemberWarning] = useState("");
   const [busy, setBusy] = useState(false);
   const [exp, setExp] = useState({ desc: "", amount: "", category: "diger", paidBy: trip.admin, splitAmong: trip.members.map(m => m.id) });
@@ -41,7 +42,10 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
   const addMember = async () => {
     if (!memberName.trim()) return;
     setBusy(true);
-    try { await actions.addMember(memberName.trim()); setMemberName(""); setShowAddMember(false); }
+    try {
+      await actions.addMember(memberName.trim(), memberEmail.trim() || undefined);
+      setMemberName(""); setMemberEmail(""); setShowAddMember(false);
+    }
     catch (e) { setMemberWarning(e.message); }
     finally { setBusy(false); }
   };
@@ -145,10 +149,14 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
         </div>
       )}
       {showAddMember && (
-        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: 12, marginTop: 10, boxShadow: T.shadowSoft }}>
+          <div style={{ fontSize: 11, color: T.muted, marginBottom: 5 }}>Ad soyad</div>
           <input value={memberName} onChange={e => setMemberName(e.target.value)} placeholder="Ad soyad"
-            style={{ flex: 1, background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px", color: T.text, fontSize: 16 }} />
-          <button onClick={addMember} disabled={busy} style={{ ...btnPrimary, flex: "none", padding: "11px 16px" }}>Ekle</button>
+            style={{ width: "100%", background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px", color: T.text, fontSize: 16, marginBottom: 10, boxSizing: "border-box" }} />
+          <div style={{ fontSize: 11, color: T.muted, marginBottom: 5 }}>E-posta (opsiyonel — girersen davet e-postası gider)</div>
+          <input value={memberEmail} onChange={e => setMemberEmail(e.target.value)} placeholder="ornek@eposta.com" type="email"
+            style={{ width: "100%", background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px", color: T.text, fontSize: 16, marginBottom: 10, boxSizing: "border-box" }} />
+          <button onClick={addMember} disabled={busy} style={{ ...btnPrimary, width: "100%" }}>{busy ? "Ekleniyor..." : "Ekle"}</button>
         </div>
       )}
 

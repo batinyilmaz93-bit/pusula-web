@@ -175,7 +175,7 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
   if (!trip) return <Spinner label="Seyahat yükleniyor..." />;
 
   const actions = {
-    addMember: (name) => addMemberApi(trip.id, name).then(setTrip),
+    addMember: (name, email) => addMemberApi(trip.id, name, email).then(setTrip),
     removeMember: (id) => removeMemberApi(trip.id, id).then(setTrip),
     addExpense: (payload) => addExpenseApi(trip.id, payload).then(setTrip),
     deleteExpense: (id) => deleteExpenseApi(trip.id, id).then(setTrip),
@@ -268,7 +268,7 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
       <div style={{ padding: "14px 16px 100px" }}>
         {view === "home" && <HomeTab trip={trip} fx={fx} weather={weather} setView={setView} />}
         {view === "budget" && <BudgetTab trip={trip} fx={fx} actions={actions} myMemberId={myMember?.id} />}
-        {view === "explore" && <ExploreHub trip={trip} poi={poi} poiOffline={poiOffline} setView={setView} />}
+        {view === "explore" && <ExploreHub trip={trip} poi={poi} poiOffline={poiOffline} poiLoading={loading.poi} poiError={errors.poi} setView={setView} />}
         {isCategory && (
           <CategoryPage
             trip={trip} categoryKey={categoryKey} poi={poi} poiLoading={loading.poi} poiOffline={poiOffline}
