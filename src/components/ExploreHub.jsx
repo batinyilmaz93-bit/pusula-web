@@ -1,10 +1,13 @@
-import React from "react";
-import { ChevronRight, AlertTriangle } from "lucide-react";
+import React, { useState } from "react";
+import { ChevronRight, AlertTriangle, Bug } from "lucide-react";
 import { T } from "../lib/theme.js";
 import { AirmailStripe } from "./primitives.jsx";
 import { POI_CATEGORIES, poiEntries } from "../lib/poiCategories.js";
 
 export default function ExploreHub({ trip, poi, poiOffline, poiLoading, poiError, setView }) {
+  const [showDebug, setShowDebug] = useState(false);
+  const totalEntries = POI_CATEGORIES.reduce((s, c) => s + poiEntries(poi?.[c.key], c.key).length, 0);
+
   return (
     <div>
       <div style={{ background: `linear-gradient(160deg, ${T.cardAlt}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, marginBottom: 16, position: "relative", overflow: "hidden", boxShadow: T.shadow }}>
@@ -19,6 +22,13 @@ export default function ExploreHub({ trip, poi, poiOffline, poiLoading, poiError
         <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.dangerDim, border: `1px solid rgba(214,69,69,0.3)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
           <AlertTriangle size={13} color={T.danger} style={{ flexShrink: 0 }} />
           Yer verisi alınamadı ({poiError}). Yukarı çekip yenilemeyi dene, ya da bir kategoriye girip "yenile" butonuna bas.
+        </div>
+      )}
+
+      {!poiLoading && poi && totalEntries === 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(226,104,61,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
+          <AlertTriangle size={13} color={T.amber} style={{ flexShrink: 0 }} />
+          Servis cevap verdi ama hiç sonuç dönmedi — aşağıdaki "teşhis bilgisini göster"e bakıp bana ilettiğin ham veri ile kesin nedeni bulabiliriz.
         </div>
       )}
 
@@ -46,6 +56,25 @@ export default function ExploreHub({ trip, poi, poiOffline, poiLoading, poiError
           </button>
         );
       })}
+
+      <button onClick={() => setShowDebug(s => !s)} style={{
+        display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: T.muted,
+        fontSize: 11, cursor: "pointer", padding: "10px 0", textDecoration: "underline",
+      }}>
+        <Bug size={12} /> {showDebug ? "Teşhis bilgisini gizle" : "Teşhis bilgisini göster"}
+      </button>
+      {showDebug && (
+        <pre style={{
+          background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10, padding: 12,
+          fontSize: 10, color: T.text, overflowX: "auto", whiteSpace: "pre-wrap", wordBreak: "break-word",
+        }}>
+{JSON.stringify({
+  poiLoading, poiError: poiError || null, poiOffline, poiIsNull: poi === null || poi === undefined,
+  categoryCounts: poi ? Object.fromEntries(POI_CATEGORIES.map(c => [c.key, (poi[c.key] || []).length])) : null,
+  rawPoi: poi,
+}, null, 2)}
+        </pre>
+      )}
     </div>
   );
 }
