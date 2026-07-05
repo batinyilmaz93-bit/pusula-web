@@ -67,6 +67,8 @@ export const requestResetApi = (email) => request("/api/auth/request-reset", { m
 export const confirmResetApi = (token, password) => request("/api/auth/confirm-reset", { method: "POST", body: { token, password }, auth: false });
 export const updateProfileApi = (patch) => request("/api/auth/profile", { method: "PATCH", body: patch });
 export const addTripPhotoApi = (tripId, photo) => request(`/api/trips/${tripId}/photos`, { method: "POST", body: { photo } });
+export const getMessagesApi = (tripId) => request(`/api/trips/${tripId}/messages`);
+export const sendMessageApi = (tripId, payload) => request(`/api/trips/${tripId}/messages`, { method: "POST", body: payload });
 export const deleteTripPhotoApi = (tripId, photoId) => request(`/api/trips/${tripId}/photos/${photoId}`, { method: "DELETE" });
 
 /* ---- trips ---- */

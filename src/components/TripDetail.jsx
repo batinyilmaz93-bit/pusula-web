@@ -15,6 +15,7 @@ import VlogTab from "./VlogTab.jsx";
 import MapTab from "./MapTab.jsx";
 import Profile from "./Profile.jsx";
 import TripPhotos from "./TripPhotos.jsx";
+import ChatTab from "./ChatTab.jsx";
 import {
   getTrip, deleteTripApi, addMemberApi, removeMemberApi, addExpenseApi, deleteExpenseApi,
   settleDebtApi, addHazardApi, deleteHazardApi, leaveTripApi, updateTripCurrencyApi,
@@ -287,6 +288,7 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
         {view === "map" && <MapTab trip={trip} geo={geoInfo} />}
         {view === "profile" && <Profile />}
         {view === "photos" && <TripPhotos trip={trip} actions={actions} />}
+        {view === "chat" && <ChatTab trip={trip} myMemberId={myMember?.id} />}
 
         {view === "budget" && (
           <div style={{ marginTop: 18, display: "flex", gap: 14 }}>
