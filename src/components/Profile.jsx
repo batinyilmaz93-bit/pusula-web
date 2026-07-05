@@ -1,13 +1,15 @@
-import React, { useState } from "react";
-import { User, Check, Sun, Moon, Globe } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { User, Check, Sun, Moon, Globe, Phone, Mail, History } from "lucide-react";
 import { T, btnPrimary, applyTheme } from "../lib/theme.js";
 import { L, setLanguage } from "../lib/i18n.js";
-import { Field, SectionLabel } from "./primitives.jsx";
-import { getAuth, setAuth, updateProfileApi } from "../lib/api.js";
+import { Field, SectionLabel, Empty, Spinner } from "./primitives.jsx";
+import { getAuth, setAuth, updateProfileApi, listTrips } from "../lib/api.js";
 
 export default function Profile() {
   const auth = getAuth();
   const [name, setName] = useState(auth?.user?.name || "");
+  const [email, setEmail] = useState(auth?.user?.email || "");
+  const [phone, setPhone] = useState(auth?.user?.phone || "");
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -17,6 +19,12 @@ export default function Profile() {
   const [lang, setLang] = useState(() => {
     try { return localStorage.getItem("pusula_lang") || "tr"; } catch { return "tr"; }
   });
+  const [trips, setTrips] = useState(null);
+  const [tripsError, setTripsError] = useState("");
+
+  useEffect(() => {
+    listTrips().then(setTrips).catch(e => setTripsError(e.message));
+  }, []);
 
   const changeTheme = (newMode) => {
     applyTheme(newMode);
@@ -34,8 +42,8 @@ export default function Profile() {
     if (!name.trim()) { setError("İsim boş olamaz."); return; }
     setBusy(true);
     try {
-      const { user } = await updateProfileApi(name.trim());
-      setAuth({ ...auth, user: { ...auth.user, name: user.name } });
+      const { user } = await updateProfileApi({ name: name.trim(), phone: phone.trim(), email: email.trim() });
+      setAuth({ ...auth, user: { ...auth.user, name: user.name, phone: user.phone, email: user.email } });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
@@ -63,6 +71,8 @@ export default function Profile() {
 
       <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, boxShadow: T.shadowSoft }}>
         <Field label="Görünen adın" value={name} onChange={setName} placeholder="Adın" />
+        <Field label="E-posta" value={email} onChange={setEmail} placeholder="ornek@eposta.com" type="email" />
+        <Field label="Telefon numarası" value={phone} onChange={setPhone} placeholder="+90 5xx xxx xx xx" type="tel" />
         {error && <div style={{ color: T.danger, fontSize: 12, marginBottom: 10 }}>{error}</div>}
         <button onClick={save} disabled={busy} style={{ ...btnPrimary, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
           {saved ? <><Check size={15} /> Kaydedildi</> : busy ? "Kaydediliyor..." : "Kaydet"}
@@ -74,6 +84,27 @@ export default function Profile() {
           Bu hesap eski (e-postasız) bir oturum — şifre sıfırlama gibi özellikler için çıkış yapıp e-posta ile kayıt olman gerekir.
         </div>
       )}
+
+      <SectionLabel icon={History}>Seyahat Geçmişim</SectionLabel>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: trips?.length ? 6 : 16, boxShadow: T.shadowSoft }}>
+        {tripsError && <Empty text={`Geçmiş alınamadı: ${tripsError}`} />}
+        {!tripsError && trips === null && <Spinner label="Yükleniyor..." />}
+        {!tripsError && trips?.length === 0 && <Empty text="Henüz bir seyahatin yok." />}
+        {trips?.map((t, i) => (
+          <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 8px", borderTop: i > 0 ? `1px solid ${T.border}` : "none" }}>
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: T.amberDim, display: "flex", alignItems: "center", justifyContent: "center", color: T.amber, flexShrink: 0 }}>
+              <History size={15} />
+            </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontWeight: 600, fontSize: 13.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.name}</div>
+              <div style={{ fontSize: 11.5, color: T.muted }}>{t.city}, {t.country}</div>
+            </div>
+            <div style={{ fontSize: 10.5, color: T.muted, flexShrink: 0 }}>
+              {t.createdAt ? new Date(t.createdAt).toLocaleDateString("tr-TR") : ""}
+            </div>
+          </div>
+        ))}
+      </div>
 
       <SectionLabel icon={Sun}>{L.appearance}</SectionLabel>
       <div style={{ display: "flex", gap: 8, background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 6, boxShadow: T.shadowSoft }}>

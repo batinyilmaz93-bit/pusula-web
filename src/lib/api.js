@@ -65,7 +65,7 @@ export const registerApi = (email, password, name) => request("/api/auth/registe
 export const loginApi = (email, password) => request("/api/auth/login", { method: "POST", body: { email, password }, auth: false });
 export const requestResetApi = (email) => request("/api/auth/request-reset", { method: "POST", body: { email }, auth: false });
 export const confirmResetApi = (token, password) => request("/api/auth/confirm-reset", { method: "POST", body: { token, password }, auth: false });
-export const updateProfileApi = (name) => request("/api/auth/profile", { method: "PATCH", body: { name } });
+export const updateProfileApi = (patch) => request("/api/auth/profile", { method: "PATCH", body: patch });
 
 /* ---- trips ---- */
 export const listTrips = () => request("/api/trips");
