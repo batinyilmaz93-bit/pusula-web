@@ -4,6 +4,13 @@ import { T } from "../lib/theme.js";
 import { initials, colorForId, fmtTime } from "../lib/utils.js";
 
 export function Avatar({ member, size = 32 }) {
+  if (member?.avatarPhoto) {
+    return (
+      <img src={member.avatarPhoto} alt={member?.name || "Üye"} style={{
+        width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0,
+      }} />
+    );
+  }
   return (
     <div style={{
       width: size, height: size, borderRadius: "50%", background: colorForId(member?.id || "?"),

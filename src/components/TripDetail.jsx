@@ -14,9 +14,11 @@ import SecurityTab from "./SecurityTab.jsx";
 import VlogTab from "./VlogTab.jsx";
 import MapTab from "./MapTab.jsx";
 import Profile from "./Profile.jsx";
+import TripPhotos from "./TripPhotos.jsx";
 import {
   getTrip, deleteTripApi, addMemberApi, removeMemberApi, addExpenseApi, deleteExpenseApi,
   settleDebtApi, addHazardApi, deleteHazardApi, leaveTripApi, updateTripCurrencyApi,
+  addTripPhotoApi, deleteTripPhotoApi,
   proxyGeocode, proxyWeather, proxyFx, proxyPoi, proxyNews, getAuth,
 } from "../lib/api.js";
 import { getSocket, joinTripRoom, leaveTripRoom } from "../lib/socket.js";
@@ -179,6 +181,8 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
     addMember: (name, email) => addMemberApi(trip.id, name, email).then(setTrip),
     removeMember: (id) => removeMemberApi(trip.id, id).then(setTrip),
     addExpense: (payload) => addExpenseApi(trip.id, payload).then(setTrip),
+    addTripPhoto: (photo) => addTripPhotoApi(trip.id, photo).then(setTrip),
+    deleteTripPhoto: (photoId) => deleteTripPhotoApi(trip.id, photoId).then(setTrip),
     deleteExpense: (id) => deleteExpenseApi(trip.id, id).then(setTrip),
     settleDebt: (d) => settleDebtApi(trip.id, d).then(setTrip),
     addHazard: (text) => addHazardApi(trip.id, text).then(setTrip),
@@ -282,6 +286,7 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
         {view === "vlog" && <VlogTab trip={trip} weather={weather} poi={poi} />}
         {view === "map" && <MapTab trip={trip} geo={geoInfo} />}
         {view === "profile" && <Profile />}
+        {view === "photos" && <TripPhotos trip={trip} actions={actions} />}
 
         {view === "budget" && (
           <div style={{ marginTop: 18, display: "flex", gap: 14 }}>

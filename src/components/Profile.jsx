@@ -1,15 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { User, Check, Sun, Moon, Globe, Phone, Mail, History } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { User, Check, Sun, Moon, Globe, Phone, Mail, History, Camera, Image as ImageIcon } from "lucide-react";
 import { T, btnPrimary, applyTheme } from "../lib/theme.js";
 import { L, setLanguage } from "../lib/i18n.js";
 import { Field, SectionLabel, Empty, Spinner } from "./primitives.jsx";
 import { getAuth, setAuth, updateProfileApi, listTrips } from "../lib/api.js";
+import { compressImageFile } from "../lib/utils.js";
 
 export default function Profile() {
   const auth = getAuth();
   const [name, setName] = useState(auth?.user?.name || "");
   const [email, setEmail] = useState(auth?.user?.email || "");
   const [phone, setPhone] = useState(auth?.user?.phone || "");
+  const [avatarPhoto, setAvatarPhoto] = useState(auth?.user?.avatarPhoto || null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
+  const galleryInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -37,6 +43,23 @@ export default function Profile() {
     setLang(newLang);
   };
 
+  const handleAvatarSelect = async (file) => {
+    if (!file) return;
+    setAvatarError("");
+    if (!file.type.startsWith("image/")) { setAvatarError("Sadece görsel dosyası yükleyebilirsin."); return; }
+    setAvatarBusy(true);
+    try {
+      const dataUrl = await compressImageFile(file, 400, 0.75); // profile photos can be smaller than receipts
+      const { user } = await updateProfileApi({ avatarPhoto: dataUrl });
+      setAvatarPhoto(user.avatarPhoto);
+      setAuth({ ...auth, user: { ...auth.user, avatarPhoto: user.avatarPhoto } });
+    } catch (e) {
+      setAvatarError(e.message || "Fotoğraf yüklenemedi.");
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
   const save = async () => {
     setError(""); setSaved(false);
     if (!name.trim()) { setError("İsim boş olamaz."); return; }
@@ -59,13 +82,34 @@ export default function Profile() {
         background: `linear-gradient(135deg, ${T.navy}, #1A2E47)`, borderRadius: 20, padding: 20,
         boxShadow: T.shadow, textAlign: "center", marginBottom: 18,
       }}>
+        <input ref={galleryInputRef} type="file" accept="image/*" style={{ display: "none" }}
+          onChange={e => handleAvatarSelect(e.target.files?.[0])} />
+        <input ref={cameraInputRef} type="file" accept="image/*" capture="user" style={{ display: "none" }}
+          onChange={e => handleAvatarSelect(e.target.files?.[0])} />
+
         <div style={{
-          width: 64, height: 64, borderRadius: "50%", margin: "0 auto 12px", background: "rgba(255,255,255,0.14)",
-          display: "flex", alignItems: "center", justifyContent: "center",
+          width: 76, height: 76, borderRadius: "50%", margin: "0 auto 10px", background: "rgba(255,255,255,0.14)",
+          display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative",
         }}>
-          <User size={28} color="#FFF9F0" />
+          {avatarBusy ? <Spinner label="" /> : avatarPhoto ? (
+            <img src={avatarPhoto} alt="Profil fotoğrafı" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
+            <User size={32} color="#FFF9F0" />
+          )}
         </div>
-        <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 19, fontWeight: 600, color: "#FFF9F0" }}>{auth?.user?.name}</div>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 4 }}>
+          <button onClick={() => galleryInputRef.current?.click()} disabled={avatarBusy} style={{
+            display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.16)", border: "none",
+            borderRadius: 20, padding: "6px 12px", color: "#FFF9F0", fontSize: 11.5, cursor: "pointer",
+          }}><ImageIcon size={12} /> Galeriden Seç</button>
+          <button onClick={() => cameraInputRef.current?.click()} disabled={avatarBusy} style={{
+            display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.16)", border: "none",
+            borderRadius: 20, padding: "6px 12px", color: "#FFF9F0", fontSize: 11.5, cursor: "pointer",
+          }}><Camera size={12} /> Kamera</button>
+        </div>
+        {avatarError && <div style={{ color: "#FFB3AD", fontSize: 11, marginBottom: 4 }}>{avatarError}</div>}
+
+        <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 19, fontWeight: 600, color: "#FFF9F0", marginTop: 8 }}>{auth?.user?.name}</div>
         {auth?.user?.email && <div style={{ fontSize: 12, color: "rgba(255,249,240,0.75)", marginTop: 4 }}>{auth.user.email}</div>}
       </div>
 

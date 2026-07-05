@@ -1,7 +1,7 @@
 import React from "react";
 import {
   X, Home, Wallet, Compass, Cloud, TrendingUp, ShieldAlert, Film, Map as MapIcon,
-  User, ChevronLeft, LogOut,
+  User, Images, ChevronLeft, LogOut,
 } from "lucide-react";
 import { T } from "../lib/theme.js";
 import { L } from "../lib/i18n.js";
@@ -18,6 +18,7 @@ export default function Sidebar({ open, onClose, view, setView, tripName, onBack
     { key: "security", label: L.navSecurity, icon: ShieldAlert },
     { key: "vlog", label: L.navVlog, icon: Film },
     { key: "map", label: L.navMap, icon: MapIcon },
+    { key: "photos", label: "Fotoğraflar", icon: Images },
     { key: "profile", label: L.navProfile, icon: User },
   ];
   return (
