@@ -33,7 +33,7 @@ export default function SecurityTab({ trip, actions, news, newsLoading, newsErro
           <MapPinned size={22} color="#FFF9F0" />
         </div>
         <div>
-          <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 16, color: "#FFF9F0" }}>Güvenlik Notları</div>
+          <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, fontSize: 16, color: "#FFF9F0" }}>Güvenlik Notları</div>
           <div style={{ fontSize: 11.5, color: "rgba(255,249,240,0.75)", marginTop: 2 }}>{trip.city}, {trip.country} için topluluk uyarıları</div>
         </div>
       </div>
@@ -50,7 +50,7 @@ export default function SecurityTab({ trip, actions, news, newsLoading, newsErro
         </div>
       </div>
       {(!trip.hazards || trip.hazards.length === 0) ? <Empty text="Henüz bir not eklenmedi." /> : trip.hazards.map(h => (
-        <div key={h.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, background: T.dangerDim, border: `1px solid rgba(214,69,69,0.3)`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
+        <div key={h.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, background: T.dangerDim, border: `1px solid rgba(194,76,66,0.3)`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
           <ShieldAlert size={15} color={T.danger} style={{ flexShrink: 0, marginTop: 1 }} />
           <span style={{ fontSize: 13, flex: 1 }}>{h.text}</span>
           <button onClick={() => removeHazard(h.id)} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer" }}><X size={13} /></button>
@@ -85,7 +85,7 @@ export default function SecurityTab({ trip, actions, news, newsLoading, newsErro
       <a href="tel:112" style={{
         display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 16,
         background: T.navy, color: "#FFF9F0", borderRadius: 14, padding: "13px", textDecoration: "none",
-        fontWeight: 600, fontSize: 14.5, boxShadow: "0 3px 10px rgba(38,65,95,0.3)",
+        fontWeight: 600, fontSize: 14.5, boxShadow: "0 3px 10px rgba(139,111,71,0.3)",
       }}>
         <PhoneCall size={16} /> Acil Durum: 112
       </a>

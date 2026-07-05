@@ -79,24 +79,24 @@ export default function Login({ onReady, message, initialResetToken }) {
 
   return (
     <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "calc(24px + env(safe-area-inset-top)) 28px calc(24px + env(safe-area-inset-bottom))" }}>
-      <div style={{ textAlign: "center", marginBottom: 28 }}>
-        <div style={{
-          width: 72, height: 72, borderRadius: "50%", margin: "0 auto 18px",
-          background: `linear-gradient(150deg, ${T.amber}, #F2A65A)`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 6px 18px rgba(226,104,61,0.32)",
-        }}>
-          <Compass size={32} color="#FFF9F0" strokeWidth={1.8} />
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: "50%", margin: "0 auto 18px",
+            background: `linear-gradient(150deg, ${T.amber}, #8FB86A)`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 6px 18px rgba(107,142,78,0.32)",
+          }}>
+            <Compass size={32} color="#FFF9F0" strokeWidth={1.8} />
+          </div>
+          <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 26, fontWeight: 800, color: T.text }}>
+            {titles[mode]}
+          </div>
+          <div style={{ fontSize: 13.5, color: T.muted, marginTop: 8, lineHeight: 1.5, maxWidth: 280, marginLeft: "auto", marginRight: "auto" }}>
+            {subtitles[mode]}
+          </div>
         </div>
-        <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 26, fontWeight: 600, color: T.text }}>
-          {titles[mode]}
-        </div>
-        <div style={{ fontSize: 13.5, color: T.muted, marginTop: 8, lineHeight: 1.5, maxWidth: 280, marginLeft: "auto", marginRight: "auto" }}>
-          {subtitles[mode]}
-        </div>
-      </div>
 
-      <div style={{ background: T.card, borderRadius: 20, padding: 20, boxShadow: T.shadow, border: `1px solid ${T.border}` }}>
+        <div style={{ background: T.card, borderRadius: 20, padding: 20, boxShadow: T.shadow, border: `1px solid ${T.border}` }}>
         {(mode === "login" || mode === "register") && (
           <div style={{ display: "flex", gap: 6, marginBottom: 16, background: T.cardAlt, borderRadius: 12, padding: 4 }}>
             <button onClick={() => { setMode("login"); setError(""); setInfo(""); }} style={{
@@ -150,7 +150,7 @@ export default function Login({ onReady, message, initialResetToken }) {
         <button
           onClick={mode === "forgot" ? submitForgot : mode === "reset" ? submitReset : submitLoginOrRegister}
           disabled={busy}
-          style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: T.amber, color: "#FFF9F0", fontWeight: 600, fontSize: 14.5, fontFamily: "'Inter',sans-serif", cursor: "pointer", opacity: busy ? 0.75 : 1 }}
+          style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: T.amber, color: "#FFF9F0", fontWeight: 600, fontSize: 14.5, fontFamily: "'Nunito',sans-serif", cursor: "pointer", opacity: busy ? 0.75 : 1 }}
         >
           {busy ? "Bağlanıyor..." :
             mode === "register" ? "Hesap Oluştur" :

@@ -253,7 +253,7 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
           <Menu size={18} />
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 18, color: "#FFF9F0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{trip.name}</div>
+          <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, fontSize: 18, color: "#FFF9F0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{trip.name}</div>
           <div style={{ fontSize: 11, color: "rgba(255,249,240,0.8)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{trip.city}, {trip.country}</div>
         </div>
         <button onClick={shareInvite} title="Davet linkini paylaş" style={{
@@ -313,7 +313,7 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
               gap: 3, padding: "6px 0", cursor: "pointer", color: activeBottomKey === t.key ? T.amber : T.muted,
             }}>
               <t.icon size={18} />
-              <span style={{ fontSize: 10, fontFamily: "'Inter',sans-serif", fontWeight: activeBottomKey === t.key ? 600 : 400 }}>{t.label}</span>
+              <span style={{ fontSize: 10, fontFamily: "'Nunito',sans-serif", fontWeight: activeBottomKey === t.key ? 600 : 400 }}>{t.label}</span>
             </button>
           ))}
           <button onClick={() => setSidebarOpen(true)} style={{

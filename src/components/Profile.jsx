@@ -109,7 +109,7 @@ export default function Profile() {
         </div>
         {avatarError && <div style={{ color: "#FFB3AD", fontSize: 11, marginBottom: 4 }}>{avatarError}</div>}
 
-        <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 19, fontWeight: 600, color: "#FFF9F0", marginTop: 8 }}>{auth?.user?.name}</div>
+        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 19, fontWeight: 600, color: "#FFF9F0", marginTop: 8 }}>{auth?.user?.name}</div>
         {auth?.user?.email && <div style={{ fontSize: 12, color: "rgba(255,249,240,0.75)", marginTop: 4 }}>{auth.user.email}</div>}
       </div>
 

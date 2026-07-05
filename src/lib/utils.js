@@ -6,7 +6,7 @@ export const fmtMoney = (n, cur) => {
   return `${n.toLocaleString("tr-TR", { maximumFractionDigits: 2, minimumFractionDigits: 2 })} ${cur || ""}`.trim();
 };
 export const initials = (name) => (name || "?").trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
-const AVATAR_COLORS = ["#E2683D", "#2E9E98", "#E8956A", "#D64545", "#4CA771", "#C98BC9", "#5FA8CE", "#E0A83E"];
+const AVATAR_COLORS = ["#6B8E4E", "#5B9BD5", "#8B6F47", "#C24C42", "#4E8E5C", "#B08CC9", "#5FA8CE", "#D4A83E"];
 export const colorForId = (id) => AVATAR_COLORS[[...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLORS.length];
 export const safeConfirm = (msg) => { try { return window.confirm(msg); } catch { return true; } };
 

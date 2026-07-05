@@ -15,7 +15,7 @@ export function Avatar({ member, size = 32 }) {
     <div style={{
       width: size, height: size, borderRadius: "50%", background: colorForId(member?.id || "?"),
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, color: "#2A1C10",
+      fontFamily: "'Nunito',sans-serif", fontWeight: 700, color: "#2A1C10",
       fontSize: size * 0.38, flexShrink: 0,
     }}>{initials(member?.name)}</div>
   );
@@ -23,7 +23,7 @@ export function Avatar({ member, size = 32 }) {
 
 export function SectionLabel({ children, icon: Icon }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6, color: T.muted, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontFamily: "'Inter',sans-serif", margin: "18px 0 10px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 6, color: T.muted, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontFamily: "'Nunito',sans-serif", margin: "18px 0 10px" }}>
       {Icon && <Icon size={13} />} {children}
     </div>
   );
@@ -64,7 +64,7 @@ export function Spinner({ label = "Yükleniyor..." }) {
         width: 28, height: 28, borderRadius: "50%",
         border: `3px solid ${T.border}`, borderTopColor: T.amber,
       }} />
-      <span style={{ fontSize: 12.5, fontFamily: "'Inter',sans-serif" }}>{label}</span>
+      <span style={{ fontSize: 12.5, fontFamily: "'Nunito',sans-serif" }}>{label}</span>
     </div>
   );
 }
@@ -100,7 +100,7 @@ export function DonutChart({ segments, size = 128, thickness = 16, centerLabel, 
 }
 
 export function Empty({ text }) {
-  return <div style={{ color: T.muted, fontSize: 13, textAlign: "center", padding: "24px 10px", fontFamily: "'Inter',sans-serif" }}>{text}</div>;
+  return <div style={{ color: T.muted, fontSize: 13, textAlign: "center", padding: "24px 10px", fontFamily: "'Nunito',sans-serif" }}>{text}</div>;
 }
 
 export function LastUpdated({ ts, loading, onRefresh }) {
@@ -111,7 +111,7 @@ export function LastUpdated({ ts, loading, onRefresh }) {
       </span>
       <button onClick={onRefresh} style={{
         background: "none", border: "none", color: T.teal, display: "flex", alignItems: "center",
-        gap: 4, fontSize: 10.5, cursor: "pointer", fontFamily: "'Inter',sans-serif",
+        gap: 4, fontSize: 10.5, cursor: "pointer", fontFamily: "'Nunito',sans-serif",
       }}>
         <RefreshCw size={11} className={loading ? "spin" : ""} /> yenile
       </button>
@@ -126,7 +126,7 @@ export function Field({ label, value, onChange, placeholder, type = "text" }) {
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} type={type}
         style={{
           width: "100%", background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10,
-          padding: "10px 12px", color: T.text, fontSize: 16, fontFamily: "'Inter',sans-serif", boxSizing: "border-box",
+          padding: "10px 12px", color: T.text, fontSize: 16, fontFamily: "'Nunito',sans-serif", boxSizing: "border-box",
         }} />
     </div>
   );

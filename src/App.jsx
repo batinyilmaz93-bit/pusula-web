@@ -68,7 +68,7 @@ export default function App() {
 
   return (
     <div style={{
-      minHeight: "100dvh", background: T.bg, color: T.text, fontFamily: "'Inter',sans-serif",
+      minHeight: "100dvh", background: T.bg, color: T.text, fontFamily: "'Nunito',sans-serif",
       maxWidth: 430, margin: "0 auto", position: "relative",
     }}>
       <style>{FONTS}{`

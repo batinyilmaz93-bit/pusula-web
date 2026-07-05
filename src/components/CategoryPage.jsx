@@ -33,7 +33,7 @@ export default function CategoryPage({ trip, categoryKey, poi, poiLoading, poiOf
           <cat.icon size={20} />
         </div>
         <div>
-          <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 19 }}>{cat.label}</div>
+          <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, fontSize: 19 }}>{cat.label}</div>
           <div style={{ fontSize: 11.5, color: T.muted }}>{trip.city}, {trip.country}</div>
         </div>
       </div>
@@ -41,7 +41,7 @@ export default function CategoryPage({ trip, categoryKey, poi, poiLoading, poiOf
       <LastUpdated ts={lastUpdated} loading={poiLoading} onRefresh={onRefresh} />
 
       {poiOffline && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(226,104,61,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(107,142,78,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
           <AlertTriangle size={13} color={T.amber} style={{ flexShrink: 0 }} />
           Canlı yer servisine şu an ulaşılamadı, önceden hazırlanmış bir liste gösteriliyor.
         </div>
@@ -53,7 +53,7 @@ export default function CategoryPage({ trip, categoryKey, poi, poiLoading, poiOf
       {shown.length > 0 && (
         <>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-            <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 13, color: T.muted }}>{cat.intro}</div>
+            <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 13, color: T.muted }}>{cat.intro}</div>
             {pool.length > SHOW_COUNT && (
               <button onClick={() => setSeed(s => s + 1)} style={{
                 display: "flex", alignItems: "center", gap: 4, background: "transparent", border: `1px solid ${T.dash}`,
@@ -70,7 +70,7 @@ export default function CategoryPage({ trip, categoryKey, poi, poiLoading, poiOf
                 <cat.icon size={16} />
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 14 }}>{item.name}</div>
+                <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, fontSize: 14 }}>{item.name}</div>
                 <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>{item.note}</div>
               </div>
               <ExternalLink size={14} color={T.muted} style={{ flexShrink: 0 }} />

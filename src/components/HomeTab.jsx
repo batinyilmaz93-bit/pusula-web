@@ -36,7 +36,7 @@ export default function HomeTab({ trip, fx, weather, setView }) {
         <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#F2A65A", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, marginTop: 6 }}>
           <Sparkles size={12} /> Seyahatine hoş geldin
         </div>
-        <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 26, fontWeight: 600, color: "#FFF9F0", marginTop: 6 }}>{trip.name}</div>
+        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 26, fontWeight: 600, color: "#FFF9F0", marginTop: 6 }}>{trip.name}</div>
         <div style={{ fontSize: 13, color: "rgba(255,249,240,0.75)", marginTop: 4 }}>{trip.city}, {trip.country}</div>
         <div style={{ display: "flex", marginTop: 14, gap: -6, alignItems: "center" }}>
           {trip.members.slice(0, 6).map((m, i) => (
@@ -73,7 +73,7 @@ export default function HomeTab({ trip, fx, weather, setView }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <button onClick={() => setView("vlog")} style={{
           background: `linear-gradient(135deg, ${T.amber}, #F2A65A)`, border: "none", borderRadius: 16, padding: 16,
-          color: "#FFF9F0", cursor: "pointer", textAlign: "left", boxShadow: "0 3px 10px rgba(226,104,61,0.28)",
+          color: "#FFF9F0", cursor: "pointer", textAlign: "left", boxShadow: "0 3px 10px rgba(107,142,78,0.28)",
         }}>
           <Film size={20} />
           <div style={{ fontWeight: 700, fontSize: 14, marginTop: 8 }}>Seyahat Vlogu</div>
@@ -81,7 +81,7 @@ export default function HomeTab({ trip, fx, weather, setView }) {
         </button>
         <button onClick={() => setView("map")} style={{
           background: `linear-gradient(135deg, ${T.teal}, #3ABFB8)`, border: "none", borderRadius: 16, padding: 16,
-          color: "#FFF9F0", cursor: "pointer", textAlign: "left", boxShadow: "0 3px 10px rgba(46,158,152,0.28)",
+          color: "#FFF9F0", cursor: "pointer", textAlign: "left", boxShadow: "0 3px 10px rgba(91,155,213,0.28)",
         }}>
           <MapIcon size={20} />
           <div style={{ fontWeight: 700, fontSize: 14, marginTop: 8 }}>Harita</div>

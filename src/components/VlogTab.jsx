@@ -69,7 +69,7 @@ export default function VlogTab({ trip, weather, poi }) {
     <div style={{ marginBottom: 18 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
         <Icon size={15} color={T.amber} />
-        <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 15, color: T.text }}>{title}</div>
+        <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, fontSize: 15, color: T.text }}>{title}</div>
       </div>
       {items.map((item, i) => (
         <div key={i} style={{ display: "flex", gap: 8, marginBottom: 8, paddingLeft: 4 }}>
@@ -87,13 +87,13 @@ export default function VlogTab({ trip, weather, poi }) {
       <div style={{ background: `linear-gradient(135deg, ${T.amber}, #F2A65A)`, borderRadius: 18, padding: 18, marginBottom: 14, boxShadow: T.shadow, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
         <Film size={22} color="#FFF9F0" style={{ marginTop: 6 }} />
-        <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 20, fontWeight: 600, color: "#FFF9F0", marginTop: 8 }}>
+        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 20, fontWeight: 600, color: "#FFF9F0", marginTop: 8 }}>
           {trip.city} İçin Derlenmiş Öneriler
         </div>
         <div style={{ fontSize: 11.5, color: "rgba(255,249,240,0.85)", marginTop: 4 }}>Seyahat Vlogu</div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 6, background: T.tealDim, border: `1px solid rgba(46,158,152,0.3)`, borderRadius: 10, padding: "8px 12px", marginBottom: 14, fontSize: 11.5, color: T.text }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 6, background: T.tealDim, border: `1px solid rgba(91,155,213,0.3)`, borderRadius: 10, padding: "8px 12px", marginBottom: 14, fontSize: 11.5, color: T.text }}>
         <Info size={13} color={T.teal} style={{ flexShrink: 0, marginTop: 1 }} />
         Bu sayfa, {trip.city} için Keşfet sekmesinde topladığımız yer/hava verilerinden derlenmiş editoryal bir özet — dış bir seyahat sitesinden alınmış bir yazı değildir (telif nedeniyle başka sitelerin metnini kopyalayamıyoruz), ama önerileri kendi verimizden yorumlayarak sunuyoruz.
       </div>

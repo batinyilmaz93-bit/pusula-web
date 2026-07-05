@@ -48,16 +48,16 @@ export default function MapTab({ trip, geo }) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <MapPin size={18} color={T.amber} />
-        <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 18, fontWeight: 600 }}>{trip.city}, {trip.country}</div>
+        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 600 }}>{trip.city}, {trip.country}</div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 6, background: T.tealDim, border: `1px solid rgba(46,158,152,0.3)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 11.5, color: T.text }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 6, background: T.tealDim, border: `1px solid rgba(91,155,213,0.3)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 11.5, color: T.text }}>
         <Info size={13} color={T.teal} style={{ flexShrink: 0, marginTop: 1 }} />
         Bu harita canlıdır — çevrimdışı çalışmaz, internet bağlantısı gerektirir (bir şehrin haritasını cihaza tamamen indirmek gigabaytlarca yer ister, bu yüzden çevrimdışı desteklemiyoruz).
       </div>
 
       {mapError && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.dangerDim, border: `1px solid rgba(214,69,69,0.3)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.dangerDim, border: `1px solid rgba(194,76,66,0.3)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
           <AlertTriangle size={13} color={T.danger} style={{ flexShrink: 0 }} />
           Harita başlatılamadı: {mapError}
         </div>

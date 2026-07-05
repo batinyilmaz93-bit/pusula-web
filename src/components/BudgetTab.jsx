@@ -171,7 +171,7 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
         </button>
       </div>
       {memberWarning && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.dangerDim, border: `1px solid rgba(214,69,69,0.3)`, borderRadius: 10, padding: "8px 12px", marginTop: 8, fontSize: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.dangerDim, border: `1px solid rgba(194,76,66,0.3)`, borderRadius: 10, padding: "8px 12px", marginTop: 8, fontSize: 12 }}>
           <AlertTriangle size={13} color={T.danger} style={{ flexShrink: 0 }} />
           {memberWarning}
         </div>
@@ -206,7 +206,7 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
             {fx && currency !== "TRY" && <span style={{ display: "block", fontFamily: "'JetBrains Mono',monospace", color: T.muted, fontSize: 10.5 }}>≈ {fmtMoney(d.amount * fx.rate, "TRY")}</span>}
           </span>
           <button onClick={() => settleDebt(d)} title="Ödendi olarak işaretle" style={{
-            background: T.tealDim, border: `1px solid rgba(46,158,152,0.4)`, borderRadius: 8, padding: "8px 12px",
+            background: T.tealDim, border: `1px solid rgba(91,155,213,0.4)`, borderRadius: 8, padding: "8px 12px",
             color: T.teal, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, flexShrink: 0,
           }}><HandCoins size={12} /> Öde</button>
         </div>

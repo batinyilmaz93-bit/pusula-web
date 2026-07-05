@@ -11,7 +11,7 @@ export default function CurrencyTab({ trip, fx, fxLoading, fxOffline, lastUpdate
     <div>
       <LastUpdated ts={lastUpdated} loading={fxLoading} onRefresh={onRefresh} />
       {fxOffline && fx?.asOf && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(226,104,61,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(107,142,78,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
           <AlertTriangle size={13} color={T.amber} style={{ flexShrink: 0 }} />
           Canlı kur servisine ulaşılamadı — {fx.asOf} tarihli yaklaşık kur gösteriliyor.
         </div>

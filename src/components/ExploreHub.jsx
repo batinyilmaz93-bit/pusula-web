@@ -12,21 +12,21 @@ export default function ExploreHub({ trip, poi, poiOffline, poiLoading, poiError
     <div>
       <div style={{ background: `linear-gradient(160deg, ${T.cardAlt}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, marginBottom: 16, position: "relative", overflow: "hidden", boxShadow: T.shadow }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
-        <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 18, fontWeight: 600, marginTop: 8 }}>{trip.city} günlüğü ✈️</div>
+        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 600, marginTop: 8 }}>{trip.city} günlüğü ✈️</div>
         <div style={{ fontSize: 12, color: T.muted, marginTop: 4 }}>
           {trip.city}, {trip.country} çevresinde 8 kategoride öneriler. Her birinde 15'e kadar yer, beğenmezsen yenisini getir.
         </div>
       </div>
 
       {poiError && !poi && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.dangerDim, border: `1px solid rgba(214,69,69,0.3)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.dangerDim, border: `1px solid rgba(194,76,66,0.3)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
           <AlertTriangle size={13} color={T.danger} style={{ flexShrink: 0 }} />
           Yer verisi alınamadı ({poiError}). Yukarı çekip yenilemeyi dene, ya da bir kategoriye girip "yenile" butonuna bas.
         </div>
       )}
 
       {!poiLoading && poi && totalEntries === 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(226,104,61,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(107,142,78,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
           <AlertTriangle size={13} color={T.amber} style={{ flexShrink: 0 }} />
           Servis cevap verdi ama hiç sonuç dönmedi — aşağıdaki "teşhis bilgisini göster"e bakıp bana ilettiğin ham veri ile kesin nedeni bulabiliriz.
         </div>

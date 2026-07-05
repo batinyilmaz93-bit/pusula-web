@@ -1,25 +1,27 @@
 /* ============================= DESIGN TOKENS =============================
-   Two palettes: LIGHT ("Golden hour / Mediterranean warmth" — the original
-   default) and DARK (a "vintage airmail" dusk-navy alternative). `T` is a
-   single MUTABLE object — every component already does `import { T } from
+   LIGHT is now "Sustainable Eco-Travel" (nature-light: sage green primary,
+   sky blue secondary, warm wood-brown tertiary, soft off-white base) — one
+   of 5 concepts the user picked from a reference mockup. DARK stays the
+   "vintage airmail" dusk-navy alternative from before. `T` is a single
+   MUTABLE object — every component already does `import { T } from
    "../lib/theme.js"` and reads `T.xxx` fresh at render time, so switching
-   themes just needs to mutate T's properties in place (via applyTheme) and
-   trigger a re-render; no context/hook rewrite needed in the ~15 files that
-   already use T this way.
+   palettes just needs to mutate T's properties in place (via applyTheme)
+   and trigger a re-render; no context/hook rewrite needed in the ~15 files
+   that already use T this way.
 ============================================================================ */
 export const LIGHT = {
-  bg: "#FBF2E4", surface: "#F6E7D2", card: "#FFFBF3", cardAlt: "#FDF0D9",
-  border: "rgba(120,72,32,0.10)", dash: "rgba(196,120,60,0.38)",
-  text: "#3A2A1D", muted: "#8A7358",
-  amber: "#E2683D", amberDim: "rgba(226,104,61,0.13)",
-  teal: "#2E9E98", tealDim: "rgba(46,158,152,0.13)",
-  navy: "#26415F", navyDim: "rgba(38,65,95,0.10)",
-  danger: "#D64545", dangerDim: "rgba(214,69,69,0.11)",
-  success: "#4CA771", successDim: "rgba(76,167,113,0.13)",
-  stripeRed: "#C1443B",
-  shadow: "0 3px 14px rgba(120,72,32,0.09)", shadowSoft: "0 1px 6px rgba(120,72,32,0.06)",
-  headerBar: "linear-gradient(120deg, #E2683D, #C1443B)",
-  buttonTextOnAccent: "#FFF9F0",
+  bg: "#F7F1DF", surface: "#EFE9D2", card: "#FFFCF3", cardAlt: "#F3EDD9",
+  border: "rgba(107,90,45,0.12)", dash: "rgba(150,138,70,0.35)",
+  text: "#33301F", muted: "#7D7455",
+  amber: "#8C8F42", amberDim: "rgba(140,143,66,0.15)",
+  teal: "#5B9BD5", tealDim: "rgba(91,155,213,0.14)",
+  navy: "#8B6F47", navyDim: "rgba(139,111,71,0.13)",
+  danger: "#C24C42", dangerDim: "rgba(194,76,66,0.12)",
+  success: "#7A9142", successDim: "rgba(122,145,66,0.14)",
+  stripeRed: "#8C8F42",
+  shadow: "0 3px 14px rgba(107,90,45,0.11)", shadowSoft: "0 1px 6px rgba(107,90,45,0.07)",
+  headerBar: "linear-gradient(120deg, #D4A83E, #8C8F42)",
+  buttonTextOnAccent: "#FFFCF3",
 };
 
 export const DARK = {
@@ -49,7 +51,7 @@ export function applyTheme(mode) {
 }
 
 export const FONTS = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;1,500;1,600&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 `;
 
 // Getter-based so `{...btnPrimary}` picks up the CURRENT T values at every
@@ -58,7 +60,7 @@ export const btnPrimary = {
   flex: 1, padding: "13px", borderRadius: 14, border: "none",
   get background() { return T.amber; },
   get color() { return T.buttonTextOnAccent; },
-  fontWeight: 600, fontSize: 15, cursor: "pointer", fontFamily: "'Inter',sans-serif",
+  fontWeight: 600, fontSize: 15, cursor: "pointer", fontFamily: "'Nunito',sans-serif",
   get boxShadow() { return T.shadow; },
 };
 export const btnGhost = {
@@ -66,5 +68,5 @@ export const btnGhost = {
   get border() { return `1px solid ${T.border}`; },
   get background() { return T.card; },
   get color() { return T.muted; },
-  fontSize: 14, cursor: "pointer", fontFamily: "'Inter',sans-serif",
+  fontSize: 14, cursor: "pointer", fontFamily: "'Nunito',sans-serif",
 };
