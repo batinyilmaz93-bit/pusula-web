@@ -1,264 +1,94 @@
-import React, { useState } from "react";
-import {
-  Wallet, Users, Receipt, ArrowRightLeft, Crown, X, UserPlus, Plus, Check,
-  Trash2, HandCoins, Utensils, Car, Bed, Ticket, ShoppingBag, MoreHorizontal, AlertTriangle,
-} from "lucide-react";
-import { T, btnPrimary, btnGhost } from "../lib/theme.js";
-import { Avatar, SectionLabel, Dashed, Empty, Field, AirmailStripe, StampBadge, DonutChart } from "./primitives.jsx";
-import { fmtMoney, computeBalances, simplifyDebts, safeConfirm } from "../lib/utils.js";
+import React, { useRef, useState } from "react";
+import { Camera, Image as ImageIcon, Trash2, Images } from "lucide-react";
+import { T } from "../lib/theme.js";
+import { Empty } from "./primitives.jsx";
+import { compressImageFile } from "../lib/utils.js";
+import { safeConfirm } from "../lib/utils.js";
 
-const EXPENSE_CATEGORIES = [
-  { key: "yeme-icme", label: "Yeme-içme", icon: Utensils, color: "#E2683D" },
-  { key: "ulasim", label: "Ulaşım", icon: Car, color: "#2E9E98" },
-  { key: "konaklama", label: "Konaklama", icon: Bed, color: "#C98BC9" },
-  { key: "aktivite", label: "Aktivite", icon: Ticket, color: "#E0A83E" },
-  { key: "alisveris", label: "Alışveriş", icon: ShoppingBag, color: "#D64545" },
-  { key: "diger", label: "Diğer", icon: MoreHorizontal, color: "#9C8B72" },
-];
-const categoryIcon = (key) => (EXPENSE_CATEGORIES.find(c => c.key === key) || EXPENSE_CATEGORIES[5]).icon;
-const categoryColor = (key) => (EXPENSE_CATEGORIES.find(c => c.key === key) || EXPENSE_CATEGORIES[5]).color;
-const categoryLabel = (key) => (EXPENSE_CATEGORIES.find(c => c.key === key) || EXPENSE_CATEGORIES[5]).label;
-
-export default function BudgetTab({ trip, fx, actions, myMemberId }) {
-  const [showAddMember, setShowAddMember] = useState(false);
-  const [showAddExpense, setShowAddExpense] = useState(false);
-  const [memberName, setMemberName] = useState("");
-  const [memberWarning, setMemberWarning] = useState("");
+export default function TripPhotos({ trip, actions }) {
+  const photos = trip.photos || [];
   const [busy, setBusy] = useState(false);
-  const [exp, setExp] = useState({ desc: "", amount: "", category: "diger", paidBy: trip.admin, splitAmong: trip.members.map(m => m.id) });
+  const [error, setError] = useState("");
+  const [lightbox, setLightbox] = useState(null);
+  const galleryInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const full = photos.length >= 5;
 
-  const net = computeBalances(trip);
-  const debts = simplifyDebts(net);
-  const memberById = Object.fromEntries(trip.members.map(m => [m.id, m]));
-  const total = trip.expenses.reduce((s, e) => s + e.amount, 0);
-  const currency = trip.currencyCode || "TRY";
-  const categoryTotals = EXPENSE_CATEGORIES.map(c => ({
-    key: c.key, color: c.color, label: c.label,
-    value: trip.expenses.filter(e => !e.isSettlement && e.category === c.key).reduce((s, e) => s + e.amount, 0),
-  })).filter(c => c.value > 0).sort((a, b) => b.value - a.value);
-  const spendTotal = categoryTotals.reduce((s, c) => s + c.value, 0);
-
-  const addMember = async () => {
-    if (!memberName.trim()) return;
-    setBusy(true);
-    try { await actions.addMember(memberName.trim()); setMemberName(""); setShowAddMember(false); }
-    catch (e) { setMemberWarning(e.message); }
-    finally { setBusy(false); }
-  };
-  const removeMember = async (id) => {
-    if (id === trip.admin) return;
-    setMemberWarning("");
-    try { await actions.removeMember(id); }
-    catch (e) { setMemberWarning(e.message); }
-  };
-  const submitExpense = async () => {
-    const desc = exp.desc.trim();
-    const amt = parseFloat(exp.amount);
-    if (!desc || !amt || amt <= 0 || exp.splitAmong.length === 0) return;
+  const handleSelect = async (file) => {
+    if (!file) return;
+    setError("");
+    if (full) { setError("Bu seyahat için en fazla 5 fotoğraf yüklenebilir."); return; }
+    if (!file.type.startsWith("image/")) { setError("Sadece görsel dosyası yükleyebilirsin."); return; }
     setBusy(true);
     try {
-      await actions.addExpense({ desc, amount: amt, category: exp.category, paidBy: exp.paidBy, splitAmong: exp.splitAmong });
-      setExp({ desc: "", amount: "", category: "diger", paidBy: trip.admin, splitAmong: trip.members.map(m => m.id) });
-      setShowAddExpense(false);
-    } finally { setBusy(false); }
+      const dataUrl = await compressImageFile(file, 900, 0.75);
+      await actions.addTripPhoto(dataUrl);
+    } catch (e) {
+      setError(e.message || "Fotoğraf yüklenemedi.");
+    } finally {
+      setBusy(false);
+    }
   };
-  const deleteExpense = (id) => {
-    if (safeConfirm("Bu harcamayı silmek istediğine emin misin?")) actions.deleteExpense(id);
+
+  const removePhoto = async (photoId) => {
+    if (!safeConfirm("Bu fotoğrafı silmek istediğine emin misin?")) return;
+    await actions.deleteTripPhoto(photoId);
   };
-  const toggleSplit = (id) => setExp(e => ({ ...e, splitAmong: e.splitAmong.includes(id) ? e.splitAmong.filter(x => x !== id) : [...e.splitAmong, id] }));
-  const settleDebt = (d) => actions.settleDebt(d);
 
   return (
     <div>
-      <div style={{ background: `linear-gradient(135deg, ${T.cardAlt}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, position: "relative", overflow: "hidden", boxShadow: T.shadow }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-          <div>
-            <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 1 }}>Toplam Harcama</div>
-            <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 26, fontWeight: 700, color: T.amber, marginTop: 2 }}>{fmtMoney(total, currency)}</div>
-            {fx && currency !== "TRY" && (
-              <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 13, color: T.muted, marginTop: 1 }}>≈ {fmtMoney(total * fx.rate, "TRY")}</div>
-            )}
-          </div>
-          <StampBadge><Wallet size={22} /></StampBadge>
-        </div>
-        <Dashed />
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, color: T.muted }}>
-          <span>{trip.members.length} kişi ortak</span>
-          <span>{trip.expenses.length} harcama</span>
-        </div>
-        {currency !== "TRY" && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10, background: T.amberDim, borderRadius: 10, padding: "7px 10px" }}>
-            <span style={{ fontSize: 11.5, color: T.amber, fontWeight: 600 }}>Seyahat para birimi: {currency} · {trip.country}</span>
-            {fx ? (
-              <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: T.muted }}>1 {currency} ≈ {fx.rate.toFixed(2)} TRY</span>
-            ) : (
-              <span style={{ fontSize: 11, color: T.muted }}>kur alınıyor...</span>
-            )}
-          </div>
-        )}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+        <Images size={18} color={T.amber} />
+        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 600 }}>Seyahat Fotoğrafları</div>
+      </div>
+      <div style={{ fontSize: 12, color: T.muted, marginBottom: 14 }}>
+        Bu seyahatteki herkesin görüp ekleyebileceği ortak bir albüm — en fazla {5} fotoğraf. ({photos.length}/5)
       </div>
 
-      {categoryTotals.length > 0 && (
-        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, marginTop: 10, boxShadow: T.shadowSoft, display: "flex", alignItems: "center", gap: 16 }}>
-          <DonutChart
-            segments={categoryTotals}
-            centerLabel="Toplam"
-            centerValue={`${Math.round(spendTotal).toLocaleString("tr-TR")}`}
-          />
-          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 7 }}>
-            {categoryTotals.map(c => (
-              <div key={c.key} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12 }}>
-                <div style={{ width: 9, height: 9, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
-                <span style={{ color: T.text, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.label}</span>
-                <span style={{ color: T.muted, fontFamily: "'JetBrains Mono',monospace", fontSize: 11, flexShrink: 0 }}>
-                  %{Math.round((c.value / spendTotal) * 100)}
-                </span>
-              </div>
-            ))}
-          </div>
+      <input ref={galleryInputRef} type="file" accept="image/*" style={{ display: "none" }}
+        onChange={e => handleSelect(e.target.files?.[0])} />
+      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }}
+        onChange={e => handleSelect(e.target.files?.[0])} />
+
+      {!full && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          <button onClick={() => galleryInputRef.current?.click()} disabled={busy} style={{
+            flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: T.cardAlt,
+            border: `1.5px dashed ${T.dash}`, borderRadius: 12, padding: "12px", color: T.teal, fontSize: 13, cursor: "pointer",
+          }}><ImageIcon size={15} /> Galeriden Seç</button>
+          <button onClick={() => cameraInputRef.current?.click()} disabled={busy} style={{
+            flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: T.cardAlt,
+            border: `1.5px dashed ${T.dash}`, borderRadius: 12, padding: "12px", color: T.teal, fontSize: 13, cursor: "pointer",
+          }}><Camera size={15} /> Kamera</button>
+        </div>
+      )}
+      {busy && <div style={{ fontSize: 12, color: T.muted, marginBottom: 10 }}>Yükleniyor...</div>}
+      {error && <div style={{ color: T.danger, fontSize: 12, marginBottom: 10 }}>{error}</div>}
+      {full && <div style={{ fontSize: 11.5, color: T.muted, marginBottom: 12 }}>5/5 doldu — yeni eklemek için önce birini sil.</div>}
+
+      {photos.length === 0 ? (
+        <Empty text="Henüz fotoğraf eklenmedi." />
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {photos.map(p => (
+            <div key={p.id} style={{ position: "relative", borderRadius: 12, overflow: "hidden", boxShadow: T.shadowSoft }}>
+              <img src={p.photo} onClick={() => setLightbox(p.photo)} alt="Seyahat fotoğrafı"
+                style={{ width: "100%", height: 130, objectFit: "cover", cursor: "zoom-in", display: "block" }} />
+              <button onClick={() => removePhoto(p.id)} style={{
+                position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.55)", border: "none", borderRadius: 8,
+                padding: 5, color: "#fff", cursor: "pointer", display: "flex",
+              }}><Trash2 size={13} /></button>
+            </div>
+          ))}
         </div>
       )}
 
-      <SectionLabel icon={Users}>Katılımcılar</SectionLabel>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        {trip.members.map(m => (
-          <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 6, background: T.card, border: `1px solid ${T.border}`, borderRadius: 20, padding: "5px 10px 5px 5px" }}>
-            <Avatar member={m} size={22} />
-            <span style={{ fontSize: 12.5 }}>{m.name}{m.id === myMemberId && <span style={{ color: T.teal }}> (sen)</span>}</span>
-            {m.id === trip.admin && <Crown size={11} color={T.amber} />}
-            {m.id !== trip.admin && (
-              <button onClick={() => removeMember(m.id)} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", padding: 0, display: "flex" }}>
-                <X size={12} />
-              </button>
-            )}
-          </div>
-        ))}
-        <button onClick={() => setShowAddMember(true)} style={{ display: "flex", alignItems: "center", gap: 5, background: "transparent", border: `1.5px dashed ${T.dash}`, borderRadius: 20, padding: "5px 12px", color: T.teal, fontSize: 12.5, cursor: "pointer" }}>
-          <UserPlus size={13} /> Ekle
-        </button>
-      </div>
-      {memberWarning && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.dangerDim, border: `1px solid rgba(214,69,69,0.3)`, borderRadius: 10, padding: "8px 12px", marginTop: 8, fontSize: 12 }}>
-          <AlertTriangle size={13} color={T.danger} style={{ flexShrink: 0 }} />
-          {memberWarning}
-        </div>
-      )}
-      {showAddMember && (
-        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <input value={memberName} onChange={e => setMemberName(e.target.value)} placeholder="Ad soyad"
-            style={{ flex: 1, background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px", color: T.text, fontSize: 16 }} />
-          <button onClick={addMember} disabled={busy} style={{ ...btnPrimary, flex: "none", padding: "11px 16px" }}>Ekle</button>
-        </div>
-      )}
-
-      <SectionLabel icon={Receipt}>Bakiye Özeti</SectionLabel>
-      {debts.length === 0 && <Empty text="Herkes eşit — ödenecek borç yok." />}
-      {debts.map((d, i) => (
-        <div key={i} style={{
-          display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", fontSize: 13,
-          background: (d.from === myMemberId || d.to === myMemberId) ? T.amberDim : "transparent",
-          borderRadius: 10, marginBottom: 2,
+      {lightbox && (
+        <div onClick={() => setLightbox(null)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 50,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: 24, cursor: "zoom-out",
         }}>
-          <Avatar member={memberById[d.from]} size={24} />
-          <span style={{ fontWeight: 600 }}>{memberById[d.from]?.name}{d.from === myMemberId && " (sen)"}</span>
-          <ArrowRightLeft size={13} color={T.muted} />
-          <span style={{ fontWeight: 600 }}>{memberById[d.to]?.name}{d.to === myMemberId && " (sen)"}</span>
-          <Avatar member={memberById[d.to]} size={24} />
-          <span style={{ marginLeft: "auto", textAlign: "right" }}>
-            <span style={{ display: "block", fontFamily: "'JetBrains Mono',monospace", color: T.danger, fontWeight: 600 }}>{fmtMoney(d.amount, currency)}</span>
-            {fx && currency !== "TRY" && <span style={{ display: "block", fontFamily: "'JetBrains Mono',monospace", color: T.muted, fontSize: 10.5 }}>≈ {fmtMoney(d.amount * fx.rate, "TRY")}</span>}
-          </span>
-          <button onClick={() => settleDebt(d)} title="Ödendi olarak işaretle" style={{
-            background: T.tealDim, border: `1px solid rgba(46,158,152,0.4)`, borderRadius: 8, padding: "8px 12px",
-            color: T.teal, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, flexShrink: 0,
-          }}><HandCoins size={12} /> Öde</button>
-        </div>
-      ))}
-
-      <SectionLabel icon={Wallet}>Harcamalar</SectionLabel>
-      {trip.expenses.length === 0 && <Empty text="Henüz harcama eklenmedi." />}
-      {trip.expenses.map(e => {
-        const CatIcon = categoryIcon(e.category);
-        return (
-          <div key={e.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 14px", marginBottom: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ display: "flex", gap: 10, minWidth: 0 }}>
-                <div style={{
-                  width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                  background: e.isSettlement ? T.tealDim : `${categoryColor(e.category)}22`,
-                  color: e.isSettlement ? T.teal : categoryColor(e.category),
-                }}>
-                  {e.isSettlement ? <HandCoins size={14} /> : <CatIcon size={14} />}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{e.desc}</div>
-                  <div style={{ fontSize: 11.5, color: T.muted, marginTop: 2 }}>
-                    {e.isSettlement ? "ödeme kaydı" : `${categoryLabel(e.category)} · ${memberById[e.paidBy]?.name || "?"} ödedi · ${e.splitAmong.length} kişiye bölüştü`}
-                  </div>
-                </div>
-              </div>
-              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <div style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700 }}>{fmtMoney(e.amount, currency)}</div>
-                {fx && currency !== "TRY" && (
-                  <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: T.muted }}>≈ {fmtMoney(e.amount * fx.rate, "TRY")}</div>
-                )}
-                <button onClick={() => deleteExpense(e.id)} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", marginTop: 2 }}>
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-
-      {!showAddExpense && (
-        <button onClick={() => setShowAddExpense(true)} style={{ ...btnPrimary, width: "100%", marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-          <Plus size={16} /> Harcama Ekle
-        </button>
-      )}
-      {showAddExpense && (
-        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 14, marginTop: 8 }}>
-          <Field label="Açıklama" value={exp.desc} onChange={v => setExp({ ...exp, desc: v })} placeholder="Örn. Akşam yemeği" />
-          <Field label={`Tutar (${currency})`} value={exp.amount} onChange={v => setExp({ ...exp, amount: v })} placeholder="0.00" type="number" />
-          {fx && currency !== "TRY" && parseFloat(exp.amount) > 0 && (
-            <div style={{ fontSize: 12, color: T.amber, marginTop: -6, marginBottom: 10, fontFamily: "'JetBrains Mono',monospace" }}>
-              ≈ {fmtMoney(parseFloat(exp.amount) * fx.rate, "TRY")}
-            </div>
-          )}
-          <div style={{ fontSize: 11, color: T.muted, margin: "8px 0 5px" }}>Kategori</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
-            {EXPENSE_CATEGORIES.map(c => (
-              <button key={c.key} onClick={() => setExp({ ...exp, category: c.key })} style={{
-                display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", borderRadius: 20,
-                border: `1px solid ${exp.category === c.key ? T.amber : T.border}`,
-                background: exp.category === c.key ? T.amberDim : "transparent", color: T.text, fontSize: 12, cursor: "pointer",
-              }}><c.icon size={12} />{c.label}</button>
-            ))}
-          </div>
-          <div style={{ fontSize: 11, color: T.muted, margin: "8px 0 5px" }}>Kim ödedi?</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
-            {trip.members.map(m => (
-              <button key={m.id} onClick={() => setExp({ ...exp, paidBy: m.id })} style={{
-                padding: "6px 10px", borderRadius: 20, border: `1px solid ${exp.paidBy === m.id ? T.amber : T.border}`,
-                background: exp.paidBy === m.id ? T.amberDim : "transparent", color: T.text, fontSize: 12, cursor: "pointer",
-              }}>{m.name}</button>
-            ))}
-          </div>
-          <div style={{ fontSize: 11, color: T.muted, margin: "8px 0 5px" }}>Kimler arasında bölüşülecek?</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-            {trip.members.map(m => (
-              <button key={m.id} onClick={() => toggleSplit(m.id)} style={{
-                padding: "6px 10px", borderRadius: 20, border: `1px solid ${exp.splitAmong.includes(m.id) ? T.teal : T.border}`,
-                background: exp.splitAmong.includes(m.id) ? T.tealDim : "transparent", color: T.text, fontSize: 12, cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 4,
-              }}>{exp.splitAmong.includes(m.id) && <Check size={11} />}{m.name}</button>
-            ))}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={submitExpense} disabled={busy} style={btnPrimary}>{busy ? "Kaydediliyor..." : "Kaydet"}</button>
-            <button onClick={() => setShowAddExpense(false)} style={btnGhost}>Vazgeç</button>
-          </div>
+          <img src={lightbox} alt="Büyük" style={{ maxWidth: "100%", maxHeight: "100%", borderRadius: 12 }} />
         </div>
       )}
     </div>

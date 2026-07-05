@@ -1,9 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { T, FONTS } from "./lib/theme.js";
+import React, { useEffect, useReducer, useState } from "react";
+import { T, FONTS, applyTheme, onThemeChange } from "./lib/theme.js";
+import { setLanguage, onLanguageChange } from "./lib/i18n.js";
 import { getAuth, clearAuth, onUnauthorized } from "./lib/api.js";
-import NameGate from "./components/NameGate.jsx";
+import Login from "./components/Login.jsx";
 import TripList from "./components/TripList.jsx";
 import TripDetail from "./components/TripDetail.jsx";
+
+function hexToRgba(hex, alpha) {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 
 function readInviteFromUrl() {
   try {
@@ -18,11 +27,38 @@ function readInviteFromUrl() {
   return null;
 }
 
+function readResetTokenFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("resetToken");
+    if (token) {
+      window.history.replaceState({}, "", window.location.pathname);
+      return token;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
 export default function App() {
   const [authed, setAuthed] = useState(!!getAuth()?.token);
   const [activeTripId, setActiveTripId] = useState(null);
   const [pendingInvite, setPendingInvite] = useState(() => readInviteFromUrl());
+  const [resetToken] = useState(() => readResetTokenFromUrl());
   const [sessionMsg, setSessionMsg] = useState("");
+  const [, forceThemeRerender] = useReducer(x => x + 1, 0);
+
+  // Runs once, synchronously, before first paint — applies the saved theme
+  // (or system preference on first-ever visit) so there's no flash of the
+  // wrong theme.
+  useState(() => {
+    try {
+      const saved = localStorage.getItem("pusula_theme_mode");
+      const mode = saved || (window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      applyTheme(mode);
+      const savedLang = localStorage.getItem("pusula_lang");
+      if (savedLang) setLanguage(savedLang);
+    } catch { /* ignore */ }
+  });
 
   useEffect(() => {
     onUnauthorized(() => {
@@ -30,6 +66,9 @@ export default function App() {
       setAuthed(false);
       setActiveTripId(null);
     });
+    const offTheme = onThemeChange(forceThemeRerender);
+    const offLang = onLanguageChange(forceThemeRerender);
+    return () => { offTheme(); offLang(); };
   }, []);
 
   const handleReady = () => { setSessionMsg(""); setAuthed(true); };
@@ -37,9 +76,24 @@ export default function App() {
 
   return (
     <div style={{
-      minHeight: "100dvh", background: T.bg, color: T.text, fontFamily: "'Inter',sans-serif",
+      minHeight: "100dvh", color: T.text, fontFamily: "'Nunito',sans-serif",
       maxWidth: 430, margin: "0 auto", position: "relative",
     }}>
+      {/* Fixed, app-wide background photo — sits behind every screen. Tinted
+          heavily with the current theme's colors (not a raw photo) so it
+          reads as a soft, on-brand texture rather than competing with the
+          data-dense cards on top of it. Cards are opaque, so readability of
+          actual content is unaffected; only the space between cards shows
+          the texture. No animation — removed per feedback. */}
+      <div style={{
+        position: "fixed", inset: 0, zIndex: -2, maxWidth: 430, margin: "0 auto",
+        backgroundImage: "url('/images/travel-desk-bg.jpg')", backgroundSize: "cover", backgroundPosition: "center",
+      }} />
+      <div style={{
+        position: "fixed", inset: 0, zIndex: -1, maxWidth: 430, margin: "0 auto",
+        background: `linear-gradient(180deg, ${hexToRgba(T.amber, 0.30)} 0%, ${hexToRgba(T.bg, 0.93)} 30%, ${hexToRgba(T.bg, 0.97)} 100%)`,
+      }} />
+
       <style>{FONTS}{`
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         html, body { overscroll-behavior-y: none; }
@@ -57,7 +111,7 @@ export default function App() {
       `}</style>
 
       {!authed ? (
-        <NameGate onReady={handleReady} message={sessionMsg} />
+        <Login onReady={handleReady} message={sessionMsg} initialResetToken={resetToken} />
       ) : activeTripId ? (
         <TripDetail tripId={activeTripId} onBack={() => setActiveTripId(null)} onLogout={handleLogout} />
       ) : (

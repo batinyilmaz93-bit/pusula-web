@@ -1,58 +1,81 @@
-import React, { useState } from "react";
-import { TrendingUp, ArrowRightLeft, AlertTriangle } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { MapPin, Info, AlertTriangle } from "lucide-react";
 import { T } from "../lib/theme.js";
-import { SectionLabel, Dashed, Empty, LastUpdated, AirmailStripe } from "./primitives.jsx";
-import { fmtMoney } from "../lib/utils.js";
+import { Spinner } from "./primitives.jsx";
 
-export default function CurrencyTab({ trip, fx, fxLoading, fxOffline, lastUpdated, onRefresh, error }) {
-  const [amount, setAmount] = useState("100");
-  const amt = parseFloat(amount) || 0;
+// Leaflet's default marker icons reference image files via relative URLs
+// that don't resolve correctly under Vite's bundling — rebuild the icon
+// from the same CDN-hosted images explicitly instead.
+const markerIcon = L.icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
+});
+
+export default function MapTab({ trip, geo }) {
+  const mapRef = useRef(null);
+  const containerRef = useRef(null);
+  const [mapError, setMapError] = useState(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!geo || !containerRef.current || mapRef.current) return;
+    try {
+      const map = L.map(containerRef.current, { attributionControl: true }).setView([geo.lat, geo.lon], 13);
+      // CartoDB's free basemap tiles — OSM-derived data but explicitly meant
+      // for this kind of app-embedded use, unlike hotlinking OSM's own raw
+      // tile servers directly (which discourage exactly that and can serve
+      // slowly/inconsistently or drop requests under their usage policy).
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        maxZoom: 20, subdomains: "abcd",
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      }).addTo(map);
+      L.marker([geo.lat, geo.lon], { icon: markerIcon }).addTo(map)
+        .bindPopup(`<b>${trip.city}</b><br/>${trip.country}`).openPopup();
+      mapRef.current = map;
+      map.whenReady(() => setReady(true));
+      setTimeout(() => map.invalidateSize(), 250);
+    } catch (e) {
+      setMapError(e.message || "Harita başlatılamadı.");
+    }
+    return () => { mapRef.current?.remove(); mapRef.current = null; };
+  }, [geo, trip.city, trip.country]);
+
   return (
     <div>
-      <LastUpdated ts={lastUpdated} loading={fxLoading} onRefresh={onRefresh} />
-      {fxOffline && fx?.asOf && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(226,104,61,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
-          <AlertTriangle size={13} color={T.amber} style={{ flexShrink: 0 }} />
-          Canlı kur servisine ulaşılamadı — {fx.asOf} tarihli yaklaşık kur gösteriliyor.
-        </div>
-      )}
-      {error && <Empty text={error} />}
-
-      <SectionLabel icon={TrendingUp}>Döviz Kuru {fx ? `(${fx.code} / TRY)` : ""}</SectionLabel>
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16, position: "relative", overflow: "hidden", boxShadow: T.shadow }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
-        {fx ? (
-          <div style={{ marginTop: 6 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 13 }}>1 {fx.code}</span>
-              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, color: T.amber, fontSize: 17 }}>{fx.rate.toFixed(4)} TRY</span>
-            </div>
-            <Dashed />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 13 }}>1 TRY</span>
-              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, color: T.teal, fontSize: 17 }}>{fx.inverse.toFixed(4)} {fx.code}</span>
-            </div>
-          </div>
-        ) : <Empty text={fxLoading ? "Kur alınıyor..." : "Kur verisi yok."} />}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <MapPin size={18} color={T.amber} />
+        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 600 }}>{trip.city}, {trip.country}</div>
       </div>
 
-      {fx && fx.code !== "TRY" && (
-        <>
-          <SectionLabel icon={ArrowRightLeft}>Hızlı Çevirici</SectionLabel>
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16 }}>
-            <div style={{ fontSize: 11, color: T.muted, marginBottom: 5 }}>Tutar ({fx.code})</div>
-            <input value={amount} onChange={e => setAmount(e.target.value)} type="number" style={{
-              width: "100%", background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10,
-              padding: "10px 12px", color: T.text, fontSize: 16, fontFamily: "'JetBrains Mono',monospace", boxSizing: "border-box", marginBottom: 12,
-            }} />
-            <div style={{ textAlign: "center", padding: "10px 0" }}>
-              <div style={{ fontSize: 11, color: T.muted }}>karşılığı</div>
-              <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 24, fontWeight: 700, color: T.amber }}>{fmtMoney(amt * fx.rate, "TRY")}</div>
-            </div>
-          </div>
-        </>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 6, background: T.tealDim, border: `1px solid rgba(91,155,213,0.3)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 11.5, color: T.text }}>
+        <Info size={13} color={T.teal} style={{ flexShrink: 0, marginTop: 1 }} />
+        Bu harita canlıdır — çevrimdışı çalışmaz, internet bağlantısı gerektirir (bir şehrin haritasını cihaza tamamen indirmek gigabaytlarca yer ister, bu yüzden çevrimdışı desteklemiyoruz).
+      </div>
+
+      {mapError && (
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.dangerDim, border: `1px solid rgba(194,76,66,0.3)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
+          <AlertTriangle size={13} color={T.danger} style={{ flexShrink: 0 }} />
+          Harita başlatılamadı: {mapError}
+        </div>
       )}
-      <div style={{ fontSize: 11, color: T.muted, marginTop: 10, textAlign: "center" }}>Kur 3 dakikada bir otomatik güncellenir.</div>
+
+      <div style={{ position: "relative", width: "100%", height: 420, borderRadius: 16, overflow: "hidden", boxShadow: T.shadow, border: `1px solid ${T.border}`, background: T.cardAlt }}>
+        {!geo && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Spinner label="Konum çözülüyor..." />
+          </div>
+        )}
+        {geo && !ready && !mapError && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1, background: T.cardAlt }}>
+            <Spinner label="Harita yükleniyor..." />
+          </div>
+        )}
+        <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+      </div>
     </div>
   );
 }

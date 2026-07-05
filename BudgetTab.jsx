@@ -1,72 +1,169 @@
-import React, { useState } from "react";
-import { AlertTriangle, ShieldAlert, X, Newspaper, MapPinned, PhoneCall } from "lucide-react";
-import { T, btnPrimary } from "../lib/theme.js";
-import { SectionLabel, Empty, LastUpdated } from "./primitives.jsx";
+import React, { useEffect, useState } from "react";
+import { Luggage, Plus, MapPin, Trash2, UserPlus } from "lucide-react";
+import { T, btnPrimary, btnGhost } from "../lib/theme.js";
+import { Field, Avatar, AirmailStripe, Spinner } from "./primitives.jsx";
+import { listTrips, createTrip, joinTrip, deleteTripApi, getAuth } from "../lib/api.js";
+import { safeConfirm } from "../lib/utils.js";
+import { APP_VERSION } from "../lib/version.js";
 
-export default function SecurityTab({ trip, actions, news, newsLoading, newsError, lastUpdated, onRefresh }) {
-  const [hazard, setHazard] = useState("");
+export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLogout }) {
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [mode, setMode] = useState(pendingInvite ? "join" : null);
+
+  const [name, setName] = useState("");
+  const [country, setCountry] = useState("");
+  const [city, setCity] = useState("");
+  const [inviteCode, setInviteCode] = useState(pendingInvite || "");
   const [busy, setBusy] = useState(false);
 
-  const addHazard = async () => {
-    if (!hazard.trim()) return;
-    setBusy(true);
-    try { await actions.addHazard(hazard.trim()); setHazard(""); } finally { setBusy(false); }
+  const user = getAuth()?.user;
+
+  const refresh = () => {
+    setLoading(true); setError("");
+    listTrips().then(setTrips).catch(e => setError(e.message)).finally(() => setLoading(false));
   };
-  const removeHazard = (id) => actions.deleteHazard(id);
+  useEffect(refresh, []);
+  useEffect(() => {
+    if (pendingInvite) {
+      setMode("join"); setInviteCode(pendingInvite);
+      onConsumeInvite?.();
+    }
+  }, [pendingInvite]); // eslint-disable-line
+
+  const submitCreate = async () => {
+    const n = name.trim(), c = country.trim(), ci = city.trim();
+    if (!n || !c || !ci) return;
+    setBusy(true); setError("");
+    try {
+      const trip = await createTrip({ name: n, country: c, city: ci });
+      setName(""); setCountry(""); setCity(""); setMode(null);
+      onOpen(trip.id);
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+  };
+
+  const submitJoin = async () => {
+    const code = inviteCode.trim().toUpperCase();
+    if (!code) return;
+    setBusy(true); setError("");
+    try {
+      const trip = await joinTrip(code);
+      setInviteCode(""); setMode(null);
+      onOpen(trip.id);
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+  };
+
+  const handleDelete = async (id, tripName) => {
+    if (!safeConfirm(`"${tripName}" seyahatini silmek istediğine emin misin? Bu işlem geri alınamaz.`)) return;
+    try { await deleteTripApi(id); refresh(); } catch (e) { setError(e.message); }
+  };
 
   return (
     <div>
       <div style={{
-        background: `linear-gradient(135deg, ${T.navy}, #1A2E47)`, borderRadius: 16, padding: 16,
-        marginBottom: 14, boxShadow: T.shadow, display: "flex", alignItems: "center", gap: 12,
+        background: T.headerBar, padding: "calc(20px + env(safe-area-inset-top)) 16px 22px",
+        display: "flex", alignItems: "center", gap: 10, boxShadow: "0 4px 16px rgba(193,68,59,0.22)",
       }}>
-        <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.14)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <MapPinned size={22} color="#FFF9F0" />
+        <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Luggage size={20} color="#FFF9F0" />
         </div>
-        <div>
-          <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontWeight: 600, fontSize: 16, color: "#FFF9F0" }}>Güvenlik Notları</div>
-          <div style={{ fontSize: 11.5, color: "rgba(255,249,240,0.75)", marginTop: 2 }}>{trip.city}, {trip.country} için topluluk uyarıları</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 22, fontWeight: 600, color: "#FFF9F0" }}>Seyahatlerim</div>
+          <div style={{ fontSize: 12, color: "rgba(255,249,240,0.82)" }}>{user?.name ? `Merhaba, ${user.name}` : "Ortak bütçe & seyahat asistanı"}</div>
         </div>
+        {onLogout && (
+          <button onClick={onLogout} style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 8, padding: "6px 10px", color: "#FFF9F0", fontSize: 11, cursor: "pointer", flexShrink: 0 }}>
+            başka isimle gir
+          </button>
+        )}
       </div>
 
-      <SectionLabel icon={AlertTriangle}>Dikkat Edilmesi Gereken Bölgeler</SectionLabel>
-      <div style={{ fontSize: 11.5, color: T.muted, marginBottom: 8 }}>
-        Bu bölüm topluluk kaynaklıdır — katılımcılar bildikleri riskli sokak/bölgeleri buradan paylaşır.
-      </div>
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 12, boxShadow: T.shadowSoft, marginBottom: 12 }}>
+      <div style={{ padding: "18px 16px 90px", marginTop: -10 }}>
+
+      {pendingInvite && mode === "join" && (
+        <div style={{ background: T.tealDim, border: `1px solid rgba(91,155,213,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12 }}>
+          Bir davet linkiyle geldin — davet kodu aşağıya otomatik dolduruldu, katılmak için "Katıl" de yeter.
+        </div>
+      )}
+
+      {error && <div style={{ color: T.danger, fontSize: 12, marginBottom: 12 }}>{error}</div>}
+      {loading && <Spinner label="Seyahatlerin yükleniyor..." />}
+
+      {!loading && trips.length === 0 && !mode && (
+        <div style={{ color: T.muted, fontSize: 13, marginBottom: 16 }}>Henüz bir seyahatin yok. Yeni bir tane oluştur ya da arkadaşının davet koduyla katıl.</div>
+      )}
+
+      {trips.map(t => (
+        <div key={t.id} onClick={() => onOpen(t.id)} style={{
+          background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16,
+          marginBottom: 12, cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: T.shadowSoft,
+        }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: 4 }}>
+            <div>
+              <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, fontSize: 17 }}>{t.name}</div>
+              <div style={{ fontSize: 12.5, color: T.muted, display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+                <MapPin size={11} /> {t.city}, {t.country}
+              </div>
+              <div style={{ fontSize: 10.5, color: T.muted, marginTop: 4, fontFamily: "'JetBrains Mono',monospace" }}>davet kodu: {t.inviteCode}</div>
+            </div>
+            <button onClick={(e) => { e.stopPropagation(); handleDelete(t.id, t.name); }} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer" }}>
+              <Trash2 size={15} />
+            </button>
+          </div>
+          <div style={{ display: "flex", marginTop: 12, gap: -6 }}>
+            {t.members.slice(0, 5).map((m, i) => (
+              <div key={m.id} style={{ marginLeft: i === 0 ? 0 : -8 }}><Avatar member={m} size={26} /></div>
+            ))}
+            <span style={{ fontSize: 11, color: T.muted, marginLeft: 8, alignSelf: "center" }}>{t.members.length} kişi</span>
+          </div>
+        </div>
+      ))}
+
+      {!mode && (
         <div style={{ display: "flex", gap: 8 }}>
-          <input value={hazard} onChange={e => setHazard(e.target.value)} placeholder="Örn. Falan sokak, gece tenha"
-            style={{ flex: 1, background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10, padding: "9px 12px", color: T.text, fontSize: 16 }} />
-          <button onClick={addHazard} disabled={busy} style={{ ...btnPrimary, flex: "none", padding: "11px 16px" }}>Ekle</button>
+          <button onClick={() => setMode("create")} style={{
+            flex: 1, padding: "14px", borderRadius: 14, border: `1.5px dashed ${T.dash}`,
+            background: "transparent", color: T.amber, fontWeight: 600, fontSize: 13,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer",
+          }}><Plus size={16} /> Yeni seyahat</button>
+          <button onClick={() => setMode("join")} style={{
+            flex: 1, padding: "14px", borderRadius: 14, border: `1.5px dashed ${T.dash}`,
+            background: "transparent", color: T.teal, fontWeight: 600, fontSize: 13,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer",
+          }}><UserPlus size={16} /> Davetle katıl</button>
         </div>
-      </div>
-      {(!trip.hazards || trip.hazards.length === 0) ? <Empty text="Henüz bir not eklenmedi." /> : trip.hazards.map(h => (
-        <div key={h.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, background: T.dangerDim, border: `1px solid rgba(214,69,69,0.3)`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
-          <ShieldAlert size={15} color={T.danger} style={{ flexShrink: 0, marginTop: 1 }} />
-          <span style={{ fontSize: 13, flex: 1 }}>{h.text}</span>
-          <button onClick={() => removeHazard(h.id)} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer" }}><X size={13} /></button>
+      )}
+
+      {mode === "create" && (
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, marginTop: 6 }}>
+          <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, marginBottom: 12 }}>Yeni Seyahat</div>
+          <Field label="Seyahat adı" value={name} onChange={setName} placeholder="Örn. Ege Turu 2026" />
+          <Field label="Ülke" value={country} onChange={setCountry} placeholder="Örn. Yunanistan" />
+          <Field label="Şehir" value={city} onChange={setCity} placeholder="Örn. Sakız Adası" />
+          <div style={{ fontSize: 11, color: T.muted, marginBottom: 12 }}>Sen otomatik olarak admin olacaksın; kurduktan sonra davet kodunu arkadaşlarınla paylaşabilirsin.</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={submitCreate} disabled={busy} style={btnPrimary}>{busy ? "Oluşturuluyor..." : "Oluştur"}</button>
+            <button onClick={() => setMode(null)} style={btnGhost}>Vazgeç</button>
+          </div>
         </div>
-      ))}
+      )}
 
-      <div style={{ marginTop: 6 }}>
-        <SectionLabel icon={Newspaper}>Son Dakika Haberler</SectionLabel>
-        <LastUpdated ts={lastUpdated} loading={newsLoading} onRefresh={onRefresh} />
+      {mode === "join" && (
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, marginTop: 6 }}>
+          <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, marginBottom: 12 }}>Davetle Katıl</div>
+          <Field label="Davet kodu" value={inviteCode} onChange={v => setInviteCode(v.toUpperCase())} placeholder="Örn. BD7649" />
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={submitJoin} disabled={busy} style={btnPrimary}>{busy ? "Katılıyor..." : "Katıl"}</button>
+            <button onClick={() => setMode(null)} style={btnGhost}>Vazgeç</button>
+          </div>
+        </div>
+      )}
+      <div style={{ textAlign: "center", fontSize: 9, color: T.muted, opacity: 0.5, marginTop: 24, fontFamily: "'JetBrains Mono',monospace" }}>
+        sürüm: {APP_VERSION}
       </div>
-      {newsError && <Empty text="Haber servisine şu an ulaşılamıyor. Resmi kaynakları (Dışişleri Bakanlığı seyahat uyarıları vb.) kontrol etmeniz önerilir." />}
-      {!newsError && (!news || news.length === 0) && <Empty text={newsLoading ? "Haberler yükleniyor..." : "Haber bulunamadı."} />}
-      {news && news.map((n, i) => (
-        <a key={i} href={n.link} target="_blank" rel="noopener noreferrer" style={{ display: "block", background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 8, textDecoration: "none", color: T.text, boxShadow: T.shadowSoft }}>
-          <div style={{ fontSize: 13, fontWeight: 500 }}>{n.title}</div>
-        </a>
-      ))}
-
-      <a href="tel:112" style={{
-        display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 16,
-        background: T.navy, color: "#FFF9F0", borderRadius: 14, padding: "13px", textDecoration: "none",
-        fontWeight: 600, fontSize: 14.5, boxShadow: "0 3px 10px rgba(38,65,95,0.3)",
-      }}>
-        <PhoneCall size={16} /> Acil Durum: 112
-      </a>
+      </div>
     </div>
   );
 }

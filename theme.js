@@ -1,7 +1,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: #FBF2E4;
+  background: #F5F3E7;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
 }

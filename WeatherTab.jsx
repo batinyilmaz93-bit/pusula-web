@@ -1,74 +1,68 @@
 import React, { useState } from "react";
-import { Compass, Sun } from "lucide-react";
+import { TrendingUp, ArrowRightLeft, AlertTriangle } from "lucide-react";
 import { T } from "../lib/theme.js";
-import { Field } from "./primitives.jsx";
-import { registerDevice, setAuth } from "../lib/api.js";
-import { APP_VERSION } from "../lib/version.js";
+import { SectionLabel, Dashed, Empty, LastUpdated, AirmailStripe } from "./primitives.jsx";
+import { fmtMoney } from "../lib/utils.js";
 
-export default function NameGate({ onReady, message }) {
-  const [name, setName] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
-  const submit = async () => {
-    const n = name.trim();
-    if (!n) return;
-    setBusy(true); setError("");
-    try {
-      const { token, user } = await registerDevice(n);
-      setAuth({ token, user });
-      onReady();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
+export default function CurrencyTab({ trip, fx, fxLoading, fxOffline, lastUpdated, onRefresh, error }) {
+  const [amount, setAmount] = useState("100");
+  const amt = parseFloat(amount) || 0;
   return (
-    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "calc(24px + env(safe-area-inset-top)) 28px calc(24px + env(safe-area-inset-bottom))" }}>
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{
-          width: 72, height: 72, borderRadius: "50%", margin: "0 auto 18px",
-          background: `linear-gradient(150deg, ${T.amber}, #F2A65A)`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 6px 18px rgba(226,104,61,0.32)",
-        }}>
-          <Compass size={32} color="#FFF9F0" strokeWidth={1.8} />
+    <div>
+      <LastUpdated ts={lastUpdated} loading={fxLoading} onRefresh={onRefresh} />
+      {fxOffline && fx?.asOf && (
+        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.amberDim, border: `1px solid rgba(107,142,78,0.35)`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 12 }}>
+          <AlertTriangle size={13} color={T.amber} style={{ flexShrink: 0 }} />
+          Canlı kur servisine ulaşılamadı — {fx.asOf} tarihli yaklaşık kur gösteriliyor.
         </div>
-        <div style={{ fontFamily: "'Fraunces',serif", fontStyle: "italic", fontSize: 26, fontWeight: 600, color: T.text }}>
-          Pusula'ya hoş geldin
-        </div>
-        <div style={{ fontSize: 13.5, color: T.muted, marginTop: 8, lineHeight: 1.5, maxWidth: 280, marginLeft: "auto", marginRight: "auto" }}>
-          Seyahat arkadaşlarınla ortak bütçeyi, planı ve merakı tek yerde toplayalım. Tek ihtiyacımız olan, seni tanıyabilmemiz için bir isim — şifre falan yok.
-        </div>
-      </div>
+      )}
+      {error && <Empty text={error} />}
 
-      <div style={{ background: T.card, borderRadius: 20, padding: 20, boxShadow: T.shadow, border: `1px solid ${T.border}` }}>
-        <Field label="Adın ne olsun?" value={name} onChange={setName} placeholder="Örn. Batın" />
-        {message && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, color: T.amber, fontSize: 12, marginBottom: 10 }}>
-            <Sun size={13} /> {message}
+      <SectionLabel icon={TrendingUp}>Döviz Kuru {fx ? `(${fx.code} / TRY)` : ""}</SectionLabel>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16, position: "relative", overflow: "hidden", boxShadow: T.shadow }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
+        {fx ? (
+          <div style={{ marginTop: 6 }}>
+            {fx.source === "TCMB" && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: T.navyDim, borderRadius: 20, padding: "3px 10px", marginBottom: 10, fontSize: 10.5, color: T.navy, fontWeight: 600 }}>
+                🏦 Kaynak: TCMB (T.C. Merkez Bankası)
+              </div>
+            )}
+            {fx.source === "diger" && !fxOffline && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: T.tealDim, borderRadius: 20, padding: "3px 10px", marginBottom: 10, fontSize: 10.5, color: T.teal, fontWeight: 600 }}>
+                🌐 Kaynak: uluslararası kur servisi (TCMB'de bu para birimi yok/erişilemedi)
+              </div>
+            )}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13 }}>1 {fx.code}</span>
+              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, color: T.amber, fontSize: 17 }}>{fx.rate.toFixed(4)} TRY</span>
+            </div>
+            <Dashed />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13 }}>1 TRY</span>
+              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, color: T.teal, fontSize: 17 }}>{fx.inverse.toFixed(4)} {fx.code}</span>
+            </div>
           </div>
-        )}
-        {error && <div style={{ color: T.danger, fontSize: 12, marginBottom: 10 }}>{error}</div>}
-        <button onClick={submit} disabled={busy || !name.trim()} style={{
-          width: "100%", padding: "12px", borderRadius: 12, border: "none",
-          background: name.trim() ? T.amber : T.dash, color: "#FFF9F0",
-          fontWeight: 600, fontSize: 14.5, fontFamily: "'Inter',sans-serif",
-          cursor: name.trim() ? "pointer" : "default", opacity: busy ? 0.75 : 1,
-          transition: "background 0.15s ease",
-        }}>
-          {busy ? "Bağlanıyor..." : "Devam et"}
-        </button>
+        ) : <Empty text={fxLoading ? "Kur alınıyor..." : "Kur verisi yok."} />}
       </div>
 
-      <div style={{ textAlign: "center", fontSize: 11, color: T.muted, marginTop: 18 }}>
-        İyi seyahatler ✈️
-      </div>
-      <div style={{ textAlign: "center", fontSize: 9, color: T.muted, opacity: 0.5, marginTop: 6, fontFamily: "'JetBrains Mono',monospace" }}>
-        sürüm: {APP_VERSION}
-      </div>
+      {fx && fx.code !== "TRY" && (
+        <>
+          <SectionLabel icon={ArrowRightLeft}>Hızlı Çevirici</SectionLabel>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16 }}>
+            <div style={{ fontSize: 11, color: T.muted, marginBottom: 5 }}>Tutar ({fx.code})</div>
+            <input value={amount} onChange={e => setAmount(e.target.value)} type="number" style={{
+              width: "100%", background: T.cardAlt, border: `1px solid ${T.border}`, borderRadius: 10,
+              padding: "10px 12px", color: T.text, fontSize: 16, fontFamily: "'JetBrains Mono',monospace", boxSizing: "border-box", marginBottom: 12,
+            }} />
+            <div style={{ textAlign: "center", padding: "10px 0" }}>
+              <div style={{ fontSize: 11, color: T.muted }}>karşılığı</div>
+              <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 24, fontWeight: 700, color: T.amber }}>{fmtMoney(amt * fx.rate, "TRY")}</div>
+            </div>
+          </div>
+        </>
+      )}
+      <div style={{ fontSize: 11, color: T.muted, marginTop: 10, textAlign: "center" }}>Kur 3 dakikada bir otomatik güncellenir.</div>
     </div>
   );
 }
