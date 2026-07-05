@@ -16,6 +16,9 @@ import MapTab from "./MapTab.jsx";
 import Profile from "./Profile.jsx";
 import TripPhotos from "./TripPhotos.jsx";
 import ChatTab from "./ChatTab.jsx";
+import { NotificationToasts } from "./NotificationToasts.jsx";
+import FloatingChatButton from "./FloatingChatButton.jsx";
+import { getMasterEnabled, isNotificationEnabled, playNotificationSound } from "../lib/notifications.js";
 import {
   getTrip, deleteTripApi, addMemberApi, removeMemberApi, addExpenseApi, deleteExpenseApi,
   settleDebtApi, addHazardApi, deleteHazardApi, leaveTripApi, updateTripCurrencyApi,
@@ -30,11 +33,14 @@ const WEATHER_REFRESH_MS = 5 * 60 * 1000;
 const DATA_REFRESH_MS = 3 * 60 * 1000;
 
 export default function TripDetail({ tripId, onBack, onLogout }) {
+  const myUserId = getAuth()?.user?.id;
   const [trip, setTrip] = useState(null);
   const [loadError, setLoadError] = useState("");
   const [view, setView] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [toasts, setToasts] = useState([]);
+  const [unreadChat, setUnreadChat] = useState(0);
 
   const [weather, setWeather] = useState(null);
   const [weatherOffline, setWeatherOffline] = useState(false);
@@ -49,6 +55,10 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
   const [ts, setTs] = useState({});
   const geoRef = useRef(null);
   const geoPromiseRef = useRef(null);
+  const viewRef = useRef(view);
+  const myMemberRef = useRef(null);
+  useEffect(() => { viewRef.current = view; }, [view]);
+  useEffect(() => { if (view === "chat") setUnreadChat(0); }, [view]);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,13 +67,48 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
     joinTripRoom(tripId);
     const onUpdate = (t) => { if (t.id === tripId) setTrip(t); };
     const onDeleted = ({ id }) => { if (id === tripId) onBack(); };
+
+    const pushToast = (toast) => {
+      if (!getMasterEnabled()) return;
+      const id = toast.id || `${Date.now()}-${Math.random()}`;
+      setToasts(prev => [...prev, { ...toast, id }]);
+      playNotificationSound();
+      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000);
+    };
+
+    const onNotify = (payload) => {
+      if (payload.tripId !== tripId) return;
+      if (payload.actorUserId === myUserId) return; // don't notify yourself
+      if (!isNotificationEnabled(payload.type)) return;
+      pushToast({ type: payload.type, title: payload.title, body: payload.body });
+    };
+
+    const onMessage = (msg) => {
+      if (msg.tripId !== tripId) return;
+      if (msg.senderMemberId === myMemberRef.current?.id) return; // don't notify yourself
+      const isLocation = msg.kind === "location";
+      const settingKey = isLocation ? "location_shared" : "chat_message";
+      if (isNotificationEnabled(settingKey)) {
+        pushToast({
+          type: settingKey,
+          title: isLocation ? "Konum paylaşıldı" : msg.senderName,
+          body: isLocation ? `${msg.senderName} konumunu paylaştı` : msg.text,
+        });
+      }
+      if (viewRef.current !== "chat") setUnreadChat(u => u + 1);
+    };
+
     socket.on("trip:update", onUpdate);
     socket.on("trip:deleted", onDeleted);
+    socket.on("trip:notify", onNotify);
+    socket.on("trip:message", onMessage);
     return () => {
       cancelled = true;
       leaveTripRoom(tripId);
       socket.off("trip:update", onUpdate);
       socket.off("trip:deleted", onDeleted);
+      socket.off("trip:notify", onNotify);
+      socket.off("trip:message", onMessage);
     };
   }, [tripId]); // eslint-disable-line
 
@@ -196,8 +241,8 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
     onBack();
   };
 
-  const myUserId = getAuth()?.user?.id;
   const myMember = trip.members.find(m => m.userId === myUserId);
+  myMemberRef.current = myMember;
   const isAdmin = myMember?.id === trip.admin;
 
   const leaveTrip = async () => {
@@ -239,6 +284,8 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
 
   return (
     <div>
+      <NotificationToasts toasts={toasts} onDismiss={(id) => setToasts(prev => prev.filter(t => t.id !== id))} />
+      <FloatingChatButton onClick={() => setView("chat")} active={view === "chat"} unread={unreadChat} />
       <Sidebar
         open={sidebarOpen} onClose={() => setSidebarOpen(false)}
         view={isCategory ? "explore" : view} setView={setView}

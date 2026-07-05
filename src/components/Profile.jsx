@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { User, Check, Sun, Moon, Globe, Phone, Mail, History, Camera, Image as ImageIcon } from "lucide-react";
+import { User, Check, Sun, Moon, Globe, Phone, Mail, History, Camera, Image as ImageIcon, Bell, Volume2 } from "lucide-react";
 import { T, btnPrimary, applyTheme } from "../lib/theme.js";
 import { L, setLanguage } from "../lib/i18n.js";
 import { Field, SectionLabel, Empty, Spinner } from "./primitives.jsx";
 import { getAuth, setAuth, updateProfileApi, listTrips } from "../lib/api.js";
 import { compressImageFile } from "../lib/utils.js";
+import { NOTIFICATION_TYPES, getNotificationSettings, setNotificationSetting, getMasterEnabled, setMasterEnabled, playNotificationSound } from "../lib/notifications.js";
 
 export default function Profile() {
   const auth = getAuth();
@@ -27,6 +28,21 @@ export default function Profile() {
   });
   const [trips, setTrips] = useState(null);
   const [tripsError, setTripsError] = useState("");
+  const [notifSettings, setNotifSettings] = useState(() => getNotificationSettings());
+  const [notifMaster, setNotifMaster] = useState(() => getMasterEnabled());
+
+  const toggleMaster = () => {
+    const next = !notifMaster;
+    setMasterEnabled(next);
+    setNotifMaster(next);
+    if (next) playNotificationSound();
+  };
+  const toggleNotif = (key) => {
+    const next = !notifSettings[key];
+    setNotificationSetting(key, next);
+    setNotifSettings(s => ({ ...s, [key]: next }));
+    if (next) playNotificationSound();
+  };
 
   useEffect(() => {
     listTrips().then(setTrips).catch(e => setTripsError(e.message));
@@ -176,6 +192,45 @@ export default function Profile() {
       <div style={{ fontSize: 10.5, color: T.muted, marginTop: 8, textAlign: "center", lineHeight: 1.5 }}>
         Şu an sadece menü/başlık gibi ana metinler çevriliyor, her açıklama metni değil.
       </div>
+
+      <SectionLabel icon={Bell}>Bildirimler</SectionLabel>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "4px 14px", boxShadow: T.shadowSoft, marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Volume2 size={16} color={T.amber} />
+            <span style={{ fontWeight: 700, fontSize: 13.5 }}>Sesli bildirimler</span>
+          </div>
+          <Toggle checked={notifMaster} onChange={toggleMaster} />
+        </div>
+      </div>
+      <div style={{
+        background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "4px 14px",
+        boxShadow: T.shadowSoft, opacity: notifMaster ? 1 : 0.5, pointerEvents: notifMaster ? "auto" : "none",
+      }}>
+        {NOTIFICATION_TYPES.map((n, i) => (
+          <div key={n.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 0", borderTop: i > 0 ? `1px solid ${T.border}` : "none" }}>
+            <span style={{ fontSize: 13 }}>{n.label}</span>
+            <Toggle checked={notifSettings[n.key]} onChange={() => toggleNotif(n.key)} />
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 10.5, color: T.muted, marginTop: 8, textAlign: "center", lineHeight: 1.5 }}>
+        Bunlar uygulama açıkken gelen anlık bildirimler — telefon kilitliyken/uygulama kapalıyken bildirim gelmesi ayrı bir özellik, şu an desteklenmiyor.
+      </div>
     </div>
+  );
+}
+
+function Toggle({ checked, onChange }) {
+  return (
+    <button onClick={onChange} style={{
+      width: 42, height: 24, borderRadius: 12, border: "none", cursor: "pointer", position: "relative",
+      background: checked ? T.amber : T.dash, transition: "background 0.15s ease", flexShrink: 0,
+    }}>
+      <div style={{
+        position: "absolute", top: 2, left: checked ? 20 : 2, width: 20, height: 20, borderRadius: "50%",
+        background: "#fff", transition: "left 0.15s ease", boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+      }} />
+    </button>
   );
 }
