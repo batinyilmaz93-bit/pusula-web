@@ -1,21 +1,21 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, Suspense, lazy } from "react";
 import { Menu, Copy, Check, Share2, LogOut, Home, Wallet, Compass, ShieldAlert } from "lucide-react";
 import { T } from "../lib/theme.js";
 import { L } from "../lib/i18n.js";
 import { AirmailStripe, Empty, Spinner } from "./primitives.jsx";
 import Sidebar from "./Sidebar.jsx";
 import HomeTab from "./HomeTab.jsx";
-import BudgetTab from "./BudgetTab.jsx";
-import ExploreHub from "./ExploreHub.jsx";
-import CategoryPage from "./CategoryPage.jsx";
-import WeatherTab from "./WeatherTab.jsx";
-import CurrencyTab from "./CurrencyTab.jsx";
-import SecurityTab from "./SecurityTab.jsx";
-import VlogTab from "./VlogTab.jsx";
-import MapTab from "./MapTab.jsx";
-import Profile from "./Profile.jsx";
-import TripPhotos from "./TripPhotos.jsx";
-import ChatTab from "./ChatTab.jsx";
+const BudgetTab = lazy(() => import("./BudgetTab.jsx"));
+const ExploreHub = lazy(() => import("./ExploreHub.jsx"));
+const CategoryPage = lazy(() => import("./CategoryPage.jsx"));
+const WeatherTab = lazy(() => import("./WeatherTab.jsx"));
+const CurrencyTab = lazy(() => import("./CurrencyTab.jsx"));
+const SecurityTab = lazy(() => import("./SecurityTab.jsx"));
+const VlogTab = lazy(() => import("./VlogTab.jsx"));
+const MapTab = lazy(() => import("./MapTab.jsx")); // pulls in Leaflet — the single heaviest dependency, so this one matters most
+const Profile = lazy(() => import("./Profile.jsx"));
+const TripPhotos = lazy(() => import("./TripPhotos.jsx"));
+const ChatTab = lazy(() => import("./ChatTab.jsx"));
 import { NotificationToasts } from "./NotificationToasts.jsx";
 import FloatingChatButton from "./FloatingChatButton.jsx";
 import { getMasterEnabled, isNotificationEnabled, playNotificationSound } from "../lib/notifications.js";
@@ -88,11 +88,11 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
       if (msg.senderMemberId === myMemberRef.current?.id) return; // don't notify yourself
       const isLocation = msg.kind === "location";
       const settingKey = isLocation ? "location_shared" : "chat_message";
-      if (isNotificationEnabled(settingKey)) {
+      if (isNotificationEnabled(settingKey) && !(isLocation && msg.live)) {
         pushToast({
           type: settingKey,
           title: isLocation ? "Konum paylaşıldı" : msg.senderName,
-          body: isLocation ? `${msg.senderName} konumunu paylaştı` : msg.text,
+          body: isLocation ? `${msg.senderName} konumunu paylaşıyor` : (msg.kind === "photo" ? `${msg.senderName} bir fotoğraf gönderdi` : msg.text),
         });
       }
       if (viewRef.current !== "chat") setUnreadChat(u => u + 1);
@@ -320,22 +320,24 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
 
       <div style={{ padding: "14px 16px 100px" }}>
         {view === "home" && <HomeTab trip={trip} fx={fx} weather={weather} setView={setView} />}
-        {view === "budget" && <BudgetTab trip={trip} fx={fx} actions={actions} myMemberId={myMember?.id} />}
-        {view === "explore" && <ExploreHub trip={trip} poi={poi} poiOffline={poiOffline} poiLoading={loading.poi} poiError={errors.poi} setView={setView} />}
-        {isCategory && (
-          <CategoryPage
-            trip={trip} categoryKey={categoryKey} poi={poi} poiLoading={loading.poi} poiOffline={poiOffline}
-            poiError={errors.poi} lastUpdated={ts.poi} onRefresh={refreshExplore} onBack={() => setView("explore")}
-          />
-        )}
-        {view === "weather" && <WeatherTab trip={trip} weather={weather} wLoading={loading.weather} weatherOffline={weatherOffline} lastUpdated={ts.weather} onRefresh={refreshWeather} error={errors.weather} />}
-        {view === "currency" && <CurrencyTab trip={trip} fx={fx} fxLoading={loading.fx} fxOffline={fxOffline} lastUpdated={ts.fx} onRefresh={refreshCurrency} error={errors.fx} />}
-        {view === "security" && <SecurityTab trip={trip} actions={actions} news={news} newsLoading={loading.news} newsError={errors.news} lastUpdated={ts.news} onRefresh={refreshExplore} />}
-        {view === "vlog" && <VlogTab trip={trip} weather={weather} poi={poi} />}
-        {view === "map" && <MapTab trip={trip} geo={geoInfo} />}
-        {view === "profile" && <Profile />}
-        {view === "photos" && <TripPhotos trip={trip} actions={actions} />}
-        {view === "chat" && <ChatTab trip={trip} myMemberId={myMember?.id} />}
+        <Suspense fallback={<Spinner label="Yükleniyor..." />}>
+          {view === "budget" && <BudgetTab trip={trip} fx={fx} actions={actions} myMemberId={myMember?.id} />}
+          {view === "explore" && <ExploreHub trip={trip} poi={poi} poiOffline={poiOffline} poiLoading={loading.poi} poiError={errors.poi} setView={setView} />}
+          {isCategory && (
+            <CategoryPage
+              trip={trip} categoryKey={categoryKey} poi={poi} poiLoading={loading.poi} poiOffline={poiOffline}
+              poiError={errors.poi} lastUpdated={ts.poi} onRefresh={refreshExplore} onBack={() => setView("explore")}
+            />
+          )}
+          {view === "weather" && <WeatherTab trip={trip} weather={weather} wLoading={loading.weather} weatherOffline={weatherOffline} lastUpdated={ts.weather} onRefresh={refreshWeather} error={errors.weather} />}
+          {view === "currency" && <CurrencyTab trip={trip} fx={fx} fxLoading={loading.fx} fxOffline={fxOffline} lastUpdated={ts.fx} onRefresh={refreshCurrency} error={errors.fx} />}
+          {view === "security" && <SecurityTab trip={trip} actions={actions} news={news} newsLoading={loading.news} newsError={errors.news} lastUpdated={ts.news} onRefresh={refreshExplore} />}
+          {view === "vlog" && <VlogTab trip={trip} weather={weather} poi={poi} />}
+          {view === "map" && <MapTab trip={trip} geo={geoInfo} />}
+          {view === "profile" && <Profile />}
+          {view === "photos" && <TripPhotos trip={trip} actions={actions} />}
+          {view === "chat" && <ChatTab trip={trip} myMemberId={myMember?.id} />}
+        </Suspense>
 
         {view === "budget" && (
           <div style={{ marginTop: 18, display: "flex", gap: 14 }}>

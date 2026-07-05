@@ -16,10 +16,10 @@ export default function Sidebar({ open, onClose, view, setView, tripName, onBack
     { key: "weather", label: L.navWeather, icon: Cloud },
     { key: "currency", label: L.navCurrency, icon: TrendingUp },
     { key: "security", label: L.navSecurity, icon: ShieldAlert },
-    { key: "chat", label: "Sohbet", icon: MessageCircle },
+    { key: "chat", label: L.navChat, icon: MessageCircle },
     { key: "vlog", label: L.navVlog, icon: Film },
     { key: "map", label: L.navMap, icon: MapIcon },
-    { key: "photos", label: "Fotoğraflar", icon: Images },
+    { key: "photos", label: L.navPhotos, icon: Images },
     { key: "profile", label: L.navProfile, icon: User },
   ];
   return (

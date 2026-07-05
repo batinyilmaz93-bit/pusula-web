@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { User, Check, Sun, Moon, Globe, Phone, Mail, History, Camera, Image as ImageIcon, Bell, Volume2 } from "lucide-react";
-import { T, btnPrimary, applyTheme } from "../lib/theme.js";
+import { User, Check, Sun, Moon, Globe, Phone, Mail, History, Camera, Image as ImageIcon, Bell, Volume2, Download, AlertOctagon } from "lucide-react";
+import { T, btnPrimary, btnGhost, applyTheme } from "../lib/theme.js";
 import { L, setLanguage } from "../lib/i18n.js";
 import { Field, SectionLabel, Empty, Spinner } from "./primitives.jsx";
-import { getAuth, setAuth, updateProfileApi, listTrips } from "../lib/api.js";
+import { getAuth, setAuth, clearAuth, updateProfileApi, listTrips, exportDataApi, deleteAccountApi } from "../lib/api.js";
 import { compressImageFile } from "../lib/utils.js";
 import { NOTIFICATION_TYPES, getNotificationSettings, setNotificationSetting, getMasterEnabled, setMasterEnabled, playNotificationSound } from "../lib/notifications.js";
+import { isPushSupported, getPermissionState, subscribeToPush, unsubscribeFromPush, syncPushPrefs, isSubscribedOnThisDevice } from "../lib/pushNotifications.js";
 
 export default function Profile() {
   const auth = getAuth();
@@ -30,6 +31,62 @@ export default function Profile() {
   const [tripsError, setTripsError] = useState("");
   const [notifSettings, setNotifSettings] = useState(() => getNotificationSettings());
   const [notifMaster, setNotifMaster] = useState(() => getMasterEnabled());
+  const [exportBusy, setExportBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const exportData = async () => {
+    setExportBusy(true);
+    try {
+      const data = await exportDataApi();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "pusula-verilerim.json";
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setDeleteError(e.message);
+    } finally {
+      setExportBusy(false);
+    }
+  };
+
+  const deleteAccount = async () => {
+    setDeleteError("");
+    setDeleteBusy(true);
+    try {
+      await deleteAccountApi();
+      clearAuth();
+      window.location.reload();
+    } catch (e) {
+      setDeleteError(e.message);
+      setDeleteBusy(false);
+    }
+  };
+  const [pushOn, setPushOn] = useState(() => isSubscribedOnThisDevice());
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushError, setPushError] = useState("");
+
+  const togglePush = async () => {
+    setPushError("");
+    setPushBusy(true);
+    try {
+      if (pushOn) {
+        await unsubscribeFromPush();
+        setPushOn(false);
+      } else {
+        await subscribeToPush(notifSettings);
+        setPushOn(true);
+        playNotificationSound();
+      }
+    } catch (e) {
+      setPushError(e.message);
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   const toggleMaster = () => {
     const next = !notifMaster;
@@ -40,7 +97,11 @@ export default function Profile() {
   const toggleNotif = (key) => {
     const next = !notifSettings[key];
     setNotificationSetting(key, next);
-    setNotifSettings(s => ({ ...s, [key]: next }));
+    setNotifSettings(s => {
+      const updated = { ...s, [key]: next };
+      syncPushPrefs(updated); // keep server-side push in sync with this device's choices
+      return updated;
+    });
     if (next) playNotificationSound();
   };
 
@@ -196,9 +257,31 @@ export default function Profile() {
       <SectionLabel icon={Bell}>Bildirimler</SectionLabel>
       <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "4px 14px", boxShadow: T.shadowSoft, marginBottom: 8 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            <Bell size={16} color={T.amber} style={{ flexShrink: 0 }} />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 13.5 }}>Kilitliyken/kapalıyken de bildirim al</div>
+              <div style={{ fontSize: 10.5, color: T.muted }}>Telefon kilitli ya da uygulama kapalıyken de bildirim gelir</div>
+            </div>
+          </div>
+          <Toggle checked={pushOn} onChange={togglePush} disabled={pushBusy} />
+        </div>
+        {pushError && <div style={{ color: T.danger, fontSize: 11, paddingBottom: 10 }}>{pushError}</div>}
+        {isPushSupported() && getPermissionState() === "denied" && (
+          <div style={{ color: T.danger, fontSize: 10.5, paddingBottom: 10 }}>
+            Bildirim izni tarayıcı ayarlarından engellenmiş — açmak için tarayıcı/site ayarlarından izin vermen gerekiyor.
+          </div>
+        )}
+        {!isPushSupported() && (
+          <div style={{ color: T.muted, fontSize: 10.5, paddingBottom: 10 }}>Bu tarayıcı/cihaz push bildirimlerini desteklemiyor.</div>
+        )}
+      </div>
+
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "4px 14px", boxShadow: T.shadowSoft, marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Volume2 size={16} color={T.amber} />
-            <span style={{ fontWeight: 700, fontSize: 13.5 }}>Sesli bildirimler</span>
+            <span style={{ fontWeight: 700, fontSize: 13.5 }}>Uygulama içi sesli bildirimler</span>
           </div>
           <Toggle checked={notifMaster} onChange={toggleMaster} />
         </div>
@@ -215,17 +298,49 @@ export default function Profile() {
         ))}
       </div>
       <div style={{ fontSize: 10.5, color: T.muted, marginTop: 8, textAlign: "center", lineHeight: 1.5 }}>
-        Bunlar uygulama açıkken gelen anlık bildirimler — telefon kilitliyken/uygulama kapalıyken bildirim gelmesi ayrı bir özellik, şu an desteklenmiyor.
+        Bu kategoriler hem uygulama-içi sesli bildirimleri hem de (açıksa) kilitliyken/kapalıyken gelen bildirimleri kapsar.
+      </div>
+
+      <SectionLabel icon={Download}>Verilerim</SectionLabel>
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16, boxShadow: T.shadowSoft, marginBottom: 14 }}>
+        <button onClick={exportData} disabled={exportBusy} style={{ ...btnGhost, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 0 }}>
+          <Download size={15} /> {exportBusy ? "Hazırlanıyor..." : "Verilerimi indir (JSON)"}
+        </button>
+      </div>
+
+      <SectionLabel icon={AlertOctagon}>Tehlikeli Bölge</SectionLabel>
+      <div style={{ background: T.dangerDim, border: `1px solid rgba(214,69,69,0.3)`, borderRadius: 14, padding: 16 }}>
+        {!confirmDelete ? (
+          <button onClick={() => setConfirmDelete(true)} style={{
+            width: "100%", padding: "12px", borderRadius: 12, border: "none", background: "transparent",
+            color: T.danger, fontWeight: 700, fontSize: 13.5, cursor: "pointer",
+          }}>Hesabımı sil</button>
+        ) : (
+          <div>
+            <div style={{ fontSize: 12, color: T.text, marginBottom: 10, lineHeight: 1.5 }}>
+              Bu işlem geri alınamaz. Sadece senin üye olduğun tek kişilik seyahatler tamamen silinir; başka üyesi olan seyahatlerde
+              geçmişin "hesap silindi" olarak kalır ki ortak bütçe geçmişi bozulmasın.
+            </div>
+            {deleteError && <div style={{ color: T.danger, fontSize: 12, marginBottom: 10 }}>{deleteError}</div>}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={deleteAccount} disabled={deleteBusy} style={{
+                flex: 1, padding: "11px", borderRadius: 10, border: "none", background: T.danger, color: "#fff",
+                fontWeight: 700, fontSize: 13, cursor: "pointer",
+              }}>{deleteBusy ? "Siliniyor..." : "Evet, kalıcı olarak sil"}</button>
+              <button onClick={() => setConfirmDelete(false)} style={btnGhost}>Vazgeç</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function Toggle({ checked, onChange }) {
+function Toggle({ checked, onChange, disabled }) {
   return (
-    <button onClick={onChange} style={{
-      width: 42, height: 24, borderRadius: 12, border: "none", cursor: "pointer", position: "relative",
-      background: checked ? T.amber : T.dash, transition: "background 0.15s ease", flexShrink: 0,
+    <button onClick={onChange} disabled={disabled} style={{
+      width: 42, height: 24, borderRadius: 12, border: "none", cursor: disabled ? "default" : "pointer", position: "relative",
+      background: checked ? T.amber : T.dash, transition: "background 0.15s ease", flexShrink: 0, opacity: disabled ? 0.6 : 1,
     }}>
       <div style={{
         position: "absolute", top: 2, left: checked ? 20 : 2, width: 20, height: 20, borderRadius: "50%",

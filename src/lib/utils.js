@@ -10,6 +10,40 @@ const AVATAR_COLORS = ["#6B8E4E", "#5B9BD5", "#8B6F47", "#C24C42", "#4E8E5C", "#
 export const colorForId = (id) => AVATAR_COLORS[[...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLORS.length];
 export const safeConfirm = (msg) => { try { return window.confirm(msg); } catch { return true; } };
 
+// Very rough heuristic for pulling a plausible "total" amount out of OCR'd
+// receipt text — receipts aren't standardized, so this is a best-effort
+// suggestion the user should double-check, not something to trust blindly.
+// Prefers a number appearing near words like "toplam"/"total", falls back
+// to the largest plausible number on the receipt.
+export function extractAmountFromOcrText(text) {
+  if (!text) return null;
+  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+  const numberPattern = /(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})|\d+[.,]\d{2}|\d+)/g;
+  const toTotalNumber = (raw) => {
+    const cleaned = raw.replace(/\s/g, "");
+    // Handle both "1.234,56" and "1,234.56" style separators.
+    if (/,\d{2}$/.test(cleaned) && cleaned.includes(".")) return parseFloat(cleaned.replace(/\./g, "").replace(",", "."));
+    if (/\.\d{2}$/.test(cleaned) && cleaned.includes(",")) return parseFloat(cleaned.replace(/,/g, ""));
+    if (/,\d{2}$/.test(cleaned)) return parseFloat(cleaned.replace(",", "."));
+    return parseFloat(cleaned.replace(/,/g, ""));
+  };
+
+  const totalKeywords = /toplam|total|tutar|genel toplam|amount|sum/i;
+  for (const line of lines) {
+    if (totalKeywords.test(line)) {
+      const matches = line.match(numberPattern);
+      if (matches?.length) {
+        const val = toTotalNumber(matches[matches.length - 1]);
+        if (val > 0 && val < 1_000_000) return Math.round(val * 100) / 100;
+      }
+    }
+  }
+  // No labeled total found — fall back to the largest reasonable number anywhere in the text.
+  const all = (text.match(numberPattern) || []).map(toTotalNumber).filter(v => v > 0 && v < 1_000_000);
+  if (!all.length) return null;
+  return Math.round(Math.max(...all) * 100) / 100;
+}
+
 // Resize + compress an image file to a reasonably small base64 JPEG before
 // sending it to the server — keeps receipt photos well under the request
 // size limit without needing any external image-processing service.

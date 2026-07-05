@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { T, btnPrimary, btnGhost } from "../lib/theme.js";
 import { Avatar, SectionLabel, Dashed, Empty, Field, AirmailStripe, StampBadge, DonutChart } from "./primitives.jsx";
-import { fmtMoney, computeBalances, simplifyDebts, safeConfirm, compressImageFile } from "../lib/utils.js";
+import { fmtMoney, computeBalances, simplifyDebts, safeConfirm, compressImageFile, extractAmountFromOcrText } from "../lib/utils.js";
 
 const EXPENSE_CATEGORIES = [
   { key: "yeme-icme", label: "Yeme-içme", icon: Utensils, color: "#E2683D" },
@@ -32,6 +32,8 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
   const [expenseCategoryFilter, setExpenseCategoryFilter] = useState(null); // null = all
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoBusy, setPhotoBusy] = useState(false);
+  const [ocrBusy, setOcrBusy] = useState(false);
+  const [ocrHint, setOcrHint] = useState("");
   const [photoError, setPhotoError] = useState("");
   const [lightbox, setLightbox] = useState(null);
   const fileInputRef = useRef(null);
@@ -88,6 +90,21 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
     try {
       const dataUrl = await compressImageFile(file);
       setPhotoPreview(dataUrl);
+      // Best-effort OCR suggestion — runs client-side (no server/API key),
+      // only pre-fills the amount if the field is still empty, and always
+      // stays editable since receipt OCR is inherently unreliable.
+      setOcrBusy(true);
+      import("tesseract.js").then(async ({ recognize }) => {
+        try {
+          const { data } = await recognize(dataUrl, "eng");
+          const guess = extractAmountFromOcrText(data.text);
+          if (guess && !exp.amount) {
+            setExp(x => x.amount ? x : { ...x, amount: String(guess) });
+            setOcrHint(`Fişten ~${guess} tahmin edildi — tutarı kontrol et.`);
+          }
+        } catch { /* OCR is a bonus, not required — fail silently */ }
+        finally { setOcrBusy(false); }
+      }).catch(() => setOcrBusy(false));
     } catch (e) {
       setPhotoError(e.message || "Fotoğraf işlenemedi.");
     } finally {
@@ -341,12 +358,16 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
               <Camera size={15} /> {photoBusy ? "İşleniyor..." : "Fotoğraf Ekle"}
             </button>
           ) : (
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-              <img src={photoPreview} alt="Önizleme" style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover" }} />
-              <button onClick={() => { setPhotoPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }} style={{
-                display: "flex", alignItems: "center", gap: 5, background: T.dangerDim, border: "none", borderRadius: 8,
-                padding: "7px 10px", color: T.danger, fontSize: 12, cursor: "pointer",
-              }}><ImageOff size={13} /> Kaldır</button>
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <img src={photoPreview} alt="Önizleme" style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover" }} />
+                <button onClick={() => { setPhotoPreview(null); setOcrHint(""); if (fileInputRef.current) fileInputRef.current.value = ""; }} style={{
+                  display: "flex", alignItems: "center", gap: 5, background: T.dangerDim, border: "none", borderRadius: 8,
+                  padding: "7px 10px", color: T.danger, fontSize: 12, cursor: "pointer",
+                }}><ImageOff size={13} /> Kaldır</button>
+              </div>
+              {ocrBusy && <div style={{ fontSize: 11, color: T.muted, marginTop: 6 }}>Fiş okunuyor...</div>}
+              {!ocrBusy && ocrHint && <div style={{ fontSize: 11, color: T.teal, marginTop: 6 }}>{ocrHint}</div>}
             </div>
           )}
           {photoError && <div style={{ color: T.danger, fontSize: 11.5, marginBottom: 10 }}>{photoError}</div>}

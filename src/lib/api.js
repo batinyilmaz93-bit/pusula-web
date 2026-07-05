@@ -72,6 +72,15 @@ export const sendMessageApi = (tripId, payload) => request(`/api/trips/${tripId}
 export const deleteTripPhotoApi = (tripId, photoId) => request(`/api/trips/${tripId}/photos/${photoId}`, { method: "DELETE" });
 
 /* ---- trips ---- */
+export const getVapidPublicKeyApi = () => request("/api/push/vapid-public-key", { auth: false });
+export const subscribePushApi = (subscription, prefs) => request("/api/push/subscribe", { method: "POST", body: { subscription, prefs } });
+export const unsubscribePushApi = (endpoint) => request("/api/push/unsubscribe", { method: "POST", body: { endpoint } });
+export const updatePushPrefsApi = (endpoint, prefs) => request("/api/push/prefs", { method: "PATCH", body: { endpoint, prefs } });
+
+export const exportDataApi = () => request("/api/auth/export");
+export const deleteAccountApi = () => request("/api/auth/account", { method: "DELETE" });
+export const setMemberRoleApi = (tripId, memberId, role) => request(`/api/trips/${tripId}/members/${memberId}/role`, { method: "PATCH", body: { role } });
+
 export const listTrips = () => request("/api/trips");
 export const createTrip = (payload) => request("/api/trips", { method: "POST", body: payload });
 export const joinTrip = (inviteCode) => request("/api/trips/join", { method: "POST", body: { inviteCode } });

@@ -10,6 +10,7 @@
 const TR = {
   navHome: "Ana Sayfa", navBudget: "Bütçe", navExplore: "Keşfet", navWeather: "Hava Durumu",
   navCurrency: "Döviz Kuru", navSecurity: "Güvenlik", navVlog: "Seyahat Vlogu", navMap: "Harita", navProfile: "Profilim",
+  navChat: "Sohbet", navPhotos: "Fotoğraflar",
   backToTrips: "Seyahatlere Dön", logout: "Çıkış Yap",
   save: "Kaydet", cancel: "Vazgeç", add: "Ekle", delete: "Sil", loading: "Yükleniyor...",
   loginTitle: "Giriş Yap", registerTitle: "Kayıt Ol", forgotPassword: "Şifremi unuttum",
@@ -17,10 +18,14 @@ const TR = {
   totalExpense: "Toplam Harcama", participants: "Katılımcılar", balanceSummary: "Bakiye Özeti", expenses: "Harcamalar",
   addExpense: "Harcama Ekle", searchExpense: "Harcama ara...", all: "Tümü",
   appearance: "Görünüm", light: "Açık", dark: "Koyu", language: "Dil",
+  chatTitle: "Seyahat Sohbeti", chatPlaceholder: "Mesaj yaz...", chatEmpty: "Henüz mesaj yok — ilk mesajı sen yaz.",
+  photosTitle: "Seyahat Fotoğrafları", photosEmpty: "Henüz fotoğraf eklenmedi.",
+  notifications: "Bildirimler", myData: "Verilerim", dangerZone: "Tehlikeli Bölge", deleteAccount: "Hesabımı sil",
 };
 const EN = {
   navHome: "Home", navBudget: "Budget", navExplore: "Explore", navWeather: "Weather",
   navCurrency: "Currency", navSecurity: "Safety", navVlog: "Travel Vlog", navMap: "Map", navProfile: "Profile",
+  navChat: "Chat", navPhotos: "Photos",
   backToTrips: "Back to Trips", logout: "Log Out",
   save: "Save", cancel: "Cancel", add: "Add", delete: "Delete", loading: "Loading...",
   loginTitle: "Log In", registerTitle: "Sign Up", forgotPassword: "Forgot password",
@@ -28,6 +33,9 @@ const EN = {
   totalExpense: "Total Spend", participants: "Participants", balanceSummary: "Balance Summary", expenses: "Expenses",
   addExpense: "Add Expense", searchExpense: "Search expenses...", all: "All",
   appearance: "Appearance", light: "Light", dark: "Dark", language: "Language",
+  chatTitle: "Trip Chat", chatPlaceholder: "Type a message...", chatEmpty: "No messages yet — send the first one.",
+  photosTitle: "Trip Photos", photosEmpty: "No photos added yet.",
+  notifications: "Notifications", myData: "My Data", dangerZone: "Danger Zone", deleteAccount: "Delete my account",
 };
 
 export const L = { ...TR };

@@ -4,6 +4,8 @@ import "leaflet/dist/leaflet.css";
 import { MapPin, Info, AlertTriangle } from "lucide-react";
 import { T } from "../lib/theme.js";
 import { Spinner } from "./primitives.jsx";
+import { getMessagesApi } from "../lib/api.js";
+import { getSocket } from "../lib/socket.js";
 
 // Leaflet's default marker icons reference image files via relative URLs
 // that don't resolve correctly under Vite's bundling — rebuild the icon
@@ -14,10 +16,17 @@ const markerIcon = L.icon({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
   iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
 });
+// A visually distinct marker for people's shared locations (vs. the city pin).
+const personIcon = L.divIcon({
+  className: "",
+  html: `<div style="width:30px;height:30px;border-radius:50%;background:${T.teal};border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:14px;">📍</div>`,
+  iconSize: [30, 30], iconAnchor: [15, 15],
+});
 
 export default function MapTab({ trip, geo }) {
   const mapRef = useRef(null);
   const containerRef = useRef(null);
+  const personLayerRef = useRef(null);
   const [mapError, setMapError] = useState(null);
   const [ready, setReady] = useState(false);
 
@@ -35,6 +44,7 @@ export default function MapTab({ trip, geo }) {
       }).addTo(map);
       L.marker([geo.lat, geo.lon], { icon: markerIcon }).addTo(map)
         .bindPopup(`<b>${trip.city}</b><br/>${trip.country}`).openPopup();
+      personLayerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       map.whenReady(() => setReady(true));
       setTimeout(() => map.invalidateSize(), 250);
@@ -43,6 +53,31 @@ export default function MapTab({ trip, geo }) {
     }
     return () => { mapRef.current?.remove(); mapRef.current = null; };
   }, [geo, trip.city, trip.country]);
+
+  // Plot everyone's shared locations (from chat) as pins, keeping exactly
+  // ONE marker per person — a live/repeated share moves that same marker
+  // instead of stacking a new pin on top of their last one.
+  useEffect(() => {
+    const markersBySender = new Map();
+    const addPin = (msg) => {
+      if (msg.kind !== "location" || !personLayerRef.current) return;
+      const existing = markersBySender.get(msg.senderMemberId);
+      const label = `<b>${msg.senderName}</b><br/>${msg.live ? "canlı konum" : "konum paylaştı"}`;
+      if (existing) {
+        existing.setLatLng([msg.lat, msg.lon]).setPopupContent(label);
+      } else {
+        const marker = L.marker([msg.lat, msg.lon], { icon: personIcon }).addTo(personLayerRef.current).bindPopup(label);
+        markersBySender.set(msg.senderMemberId, marker);
+      }
+    };
+    getMessagesApi(trip.id).then(r => {
+      (r.messages || []).filter(m => m.kind === "location").forEach(addPin);
+    }).catch(() => {});
+    const socket = getSocket();
+    const onMessage = (msg) => { if (msg.tripId === trip.id) addPin(msg); };
+    socket.on("trip:message", onMessage);
+    return () => socket.off("trip:message", onMessage);
+  }, [trip.id, ready]); // eslint-disable-line
 
   return (
     <div>

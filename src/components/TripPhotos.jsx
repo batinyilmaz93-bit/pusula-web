@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Camera, Image as ImageIcon, Trash2, Images } from "lucide-react";
 import { T } from "../lib/theme.js";
+import { L } from "../lib/i18n.js";
 import { Empty } from "./primitives.jsx";
 import { compressImageFile } from "../lib/utils.js";
 import { safeConfirm } from "../lib/utils.js";
@@ -39,7 +40,7 @@ export default function TripPhotos({ trip, actions }) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
         <Images size={18} color={T.amber} />
-        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 600 }}>Seyahat Fotoğrafları</div>
+        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 600 }}>{L.photosTitle}</div>
       </div>
       <div style={{ fontSize: 12, color: T.muted, marginBottom: 14 }}>
         Bu seyahatteki herkesin görüp ekleyebileceği ortak bir albüm — en fazla {5} fotoğraf. ({photos.length}/5)
@@ -67,7 +68,7 @@ export default function TripPhotos({ trip, actions }) {
       {full && <div style={{ fontSize: 11.5, color: T.muted, marginBottom: 12 }}>5/5 doldu — yeni eklemek için önce birini sil.</div>}
 
       {photos.length === 0 ? (
-        <Empty text="Henüz fotoğraf eklenmedi." />
+        <Empty text={L.photosEmpty} />
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {photos.map(p => (
