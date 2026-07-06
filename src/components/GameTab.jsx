@@ -28,6 +28,7 @@ export default function GameTab({ trip }) {
   const [history, setHistory] = useState(null);
   const wheelOrderRef = useRef(trip.members.map(m => m.id));
   const knownMemberIdsRef = useRef(new Set(trip.members.map(m => m.id)));
+  const lastResultIdRef = useRef(null);
 
   // If someone joins the trip while this screen is already open, include
   // them by default instead of silently leaving the wheel stuck on a
@@ -48,6 +49,8 @@ export default function GameTab({ trip }) {
     const socket = getSocket();
     const onGame = (result) => {
       if (result.tripId !== trip.id) return;
+      if (result.id === lastResultIdRef.current) return; // this is our own spin echoing back — already animated it below
+      lastResultIdRef.current = result.id;
       wheelOrderRef.current = result.participantIds;
       landOn(result.winnerId, result.participantIds);
       setHistory(h => [result, ...(h || [])].slice(0, 20));
@@ -83,13 +86,23 @@ export default function GameTab({ trip }) {
     setError("");
     try {
       wheelOrderRef.current = selected;
-      await spinGameApi(trip.id, selected); // result arrives via socket -> landOn(), so everyone watching spins together
+      const result = await spinGameApi(trip.id, selected);
+      // Animate immediately from our own response instead of waiting on the
+      // socket round-trip — the person who tapped the button shouldn't have
+      // to wait on network jitter to see anything happen. Other viewers
+      // still get the same animation via the trip:game broadcast.
+      lastResultIdRef.current = result.id;
+      landOn(result.winnerId, result.participantIds);
+      setHistory(h => [result, ...(h || [])].slice(0, 20));
     } catch (e) {
       setError(e.message);
     }
   };
 
-  const wheelIds = wheelOrderRef.current;
+  // Before any spin has happened yet, show the wheel matching the live
+  // selection so it doesn't look stuck on a stale member count; once a spin
+  // starts (or has a result), freeze to the exact set that was actually spun.
+  const wheelIds = (spinning || winner) ? wheelOrderRef.current : selected;
   const n = wheelIds.length;
   const seg = n ? 360 / n : 360;
   const R = 130, CX = 140, CY = 140;
@@ -112,7 +125,9 @@ export default function GameTab({ trip }) {
         }} />
         <svg width={280} height={280} viewBox="0 0 280 280" style={{
           transform: `rotate(${rotation}deg)`,
-          transition: spinning ? `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.17, 0.67, 0.2, 1)` : "none",
+          transformOrigin: `${CX}px ${CY}px`,
+          transition: spinning ? `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.12, 0.72, 0.15, 1)` : "none",
+          willChange: "transform",
         }}>
           {wheelIds.map((id, i) => {
             const m = memberById[id];
