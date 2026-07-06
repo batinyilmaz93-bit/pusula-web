@@ -85,8 +85,12 @@ export function computeBalances(trip) {
   trip.members.forEach(m => net[m.id] = 0);
   trip.expenses.forEach(exp => {
     net[exp.paidBy] = (net[exp.paidBy] || 0) + exp.amount;
-    const share = exp.amount / (exp.splitAmong.length || 1);
-    exp.splitAmong.forEach(id => net[id] = (net[id] || 0) - share);
+    if (exp.splitAmounts && typeof exp.splitAmounts === "object") {
+      Object.entries(exp.splitAmounts).forEach(([id, amt]) => net[id] = (net[id] || 0) - Number(amt || 0));
+    } else {
+      const share = exp.amount / (exp.splitAmong.length || 1);
+      exp.splitAmong.forEach(id => net[id] = (net[id] || 0) - share);
+    }
   });
   return net;
 }

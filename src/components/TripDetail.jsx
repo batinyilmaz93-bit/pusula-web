@@ -16,13 +16,17 @@ const MapTab = lazy(() => import("./MapTab.jsx")); // pulls in Leaflet — the s
 const Profile = lazy(() => import("./Profile.jsx"));
 const TripPhotos = lazy(() => import("./TripPhotos.jsx"));
 const ChatTab = lazy(() => import("./ChatTab.jsx"));
+const PollsTab = lazy(() => import("./PollsTab.jsx"));
+const PackingListTab = lazy(() => import("./PackingListTab.jsx"));
+const DocumentsTab = lazy(() => import("./DocumentsTab.jsx"));
+const ItineraryTab = lazy(() => import("./ItineraryTab.jsx"));
 import { NotificationToasts } from "./NotificationToasts.jsx";
 import FloatingChatButton from "./FloatingChatButton.jsx";
 import { getMasterEnabled, isNotificationEnabled, playNotificationSound } from "../lib/notifications.js";
 import {
   getTrip, deleteTripApi, addMemberApi, removeMemberApi, addExpenseApi, deleteExpenseApi,
   settleDebtApi, addHazardApi, deleteHazardApi, leaveTripApi, updateTripCurrencyApi,
-  addTripPhotoApi, deleteTripPhotoApi,
+  addTripPhotoApi, deleteTripPhotoApi, remindDebtApi,
   proxyGeocode, proxyWeather, proxyFx, proxyPoi, proxyNews, getAuth,
 } from "../lib/api.js";
 import { getSocket, joinTripRoom, leaveTripRoom } from "../lib/socket.js";
@@ -32,11 +36,12 @@ import { safeConfirm, nowISO } from "../lib/utils.js";
 const WEATHER_REFRESH_MS = 5 * 60 * 1000;
 const DATA_REFRESH_MS = 3 * 60 * 1000;
 
-export default function TripDetail({ tripId, onBack, onLogout }) {
+export default function TripDetail({ tripId, initialView, onConsumeInitialView, onBack, onLogout }) {
   const myUserId = getAuth()?.user?.id;
   const [trip, setTrip] = useState(null);
   const [loadError, setLoadError] = useState("");
-  const [view, setView] = useState("home");
+  const [view, setView] = useState(() => initialView || "home");
+  useEffect(() => { if (initialView) onConsumeInitialView?.(); }, []); // eslint-disable-line
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [toasts, setToasts] = useState([]);
@@ -231,6 +236,7 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
     deleteTripPhoto: (photoId) => deleteTripPhotoApi(trip.id, photoId).then(setTrip),
     deleteExpense: (id) => deleteExpenseApi(trip.id, id).then(setTrip),
     settleDebt: (d) => settleDebtApi(trip.id, d).then(setTrip),
+    remindDebt: (toMemberId, amount) => remindDebtApi(trip.id, toMemberId, amount),
     addHazard: (text) => addHazardApi(trip.id, text).then(setTrip),
     deleteHazard: (id) => deleteHazardApi(trip.id, id).then(setTrip),
   };
@@ -284,7 +290,7 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
 
   return (
     <div>
-      <NotificationToasts toasts={toasts} onDismiss={(id) => setToasts(prev => prev.filter(t => t.id !== id))} />
+      <NotificationToasts toasts={toasts} onDismiss={(id) => setToasts(prev => prev.filter(t => t.id !== id))} onOpen={(v) => v && setView(v)} />
       <FloatingChatButton onClick={() => setView("chat")} active={view === "chat"} unread={unreadChat} />
       <Sidebar
         open={sidebarOpen} onClose={() => setSidebarOpen(false)}
@@ -337,6 +343,10 @@ export default function TripDetail({ tripId, onBack, onLogout }) {
           {view === "profile" && <Profile />}
           {view === "photos" && <TripPhotos trip={trip} actions={actions} />}
           {view === "chat" && <ChatTab trip={trip} myMemberId={myMember?.id} />}
+          {view === "polls" && <PollsTab trip={trip} myMemberId={myMember?.id} isAdmin={isAdmin} />}
+          {view === "packing" && <PackingListTab trip={trip} />}
+          {view === "documents" && <DocumentsTab trip={trip} />}
+          {view === "itinerary" && <ItineraryTab trip={trip} />}
         </Suspense>
 
         {view === "budget" && (

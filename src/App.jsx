@@ -31,9 +31,27 @@ function readResetTokenFromUrl() {
   return null;
 }
 
+// A tapped push notification lands here as /?tripId=...&view=chat — this
+// reads that once, then cleans the URL so a later refresh doesn't keep
+// forcing the same screen.
+function readDeepLinkFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const tripId = params.get("tripId");
+    const view = params.get("view");
+    if (tripId) {
+      window.history.replaceState({}, "", window.location.pathname);
+      return { tripId, view: view || "home" };
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
 export default function App() {
   const [authed, setAuthed] = useState(!!getAuth()?.token);
-  const [activeTripId, setActiveTripId] = useState(null);
+  const [deepLink] = useState(() => readDeepLinkFromUrl()); // read once — it clears the URL as a side effect
+  const [activeTripId, setActiveTripId] = useState(() => deepLink?.tripId || null);
+  const [initialTripView, setInitialTripView] = useState(() => deepLink?.view || null);
   const [pendingInvite, setPendingInvite] = useState(() => readInviteFromUrl());
   const [resetToken] = useState(() => readResetTokenFromUrl());
   const [sessionMsg, setSessionMsg] = useState("");
@@ -90,7 +108,7 @@ export default function App() {
       {!authed ? (
         <Login onReady={handleReady} message={sessionMsg} initialResetToken={resetToken} />
       ) : activeTripId ? (
-        <TripDetail tripId={activeTripId} onBack={() => setActiveTripId(null)} onLogout={handleLogout} />
+        <TripDetail tripId={activeTripId} initialView={initialTripView} onConsumeInitialView={() => setInitialTripView(null)} onBack={() => setActiveTripId(null)} onLogout={handleLogout} />
       ) : (
         <TripList onOpen={setActiveTripId} pendingInvite={pendingInvite} onConsumeInvite={() => setPendingInvite(null)} onLogout={handleLogout} />
       )}

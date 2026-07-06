@@ -1,7 +1,7 @@
 import React from "react";
 import {
   X, Home, Wallet, Compass, Cloud, TrendingUp, ShieldAlert, Film, Map as MapIcon,
-  User, Images, MessageCircle, ChevronLeft, LogOut,
+  User, Images, MessageCircle, Vote, Backpack, FileText, CalendarDays, ChevronLeft, LogOut,
 } from "lucide-react";
 import { T } from "../lib/theme.js";
 import { L } from "../lib/i18n.js";
@@ -11,7 +11,9 @@ export default function Sidebar({ open, onClose, view, setView, tripName, onBack
   // current language whenever the user switches it.
   const ITEMS = [
     { key: "home", label: L.navHome, icon: Home },
+    { key: "itinerary", label: "Gün Gün Plan", icon: CalendarDays },
     { key: "budget", label: L.navBudget, icon: Wallet },
+    { key: "polls", label: "Oylamalar", icon: Vote },
     { key: "explore", label: L.navExplore, icon: Compass },
     { key: "weather", label: L.navWeather, icon: Cloud },
     { key: "currency", label: L.navCurrency, icon: TrendingUp },
@@ -20,6 +22,8 @@ export default function Sidebar({ open, onClose, view, setView, tripName, onBack
     { key: "vlog", label: L.navVlog, icon: Film },
     { key: "map", label: L.navMap, icon: MapIcon },
     { key: "photos", label: L.navPhotos, icon: Images },
+    { key: "packing", label: "Paket Listesi", icon: Backpack },
+    { key: "documents", label: "Belgeler", icon: FileText },
     { key: "profile", label: L.navProfile, icon: User },
   ];
   return (

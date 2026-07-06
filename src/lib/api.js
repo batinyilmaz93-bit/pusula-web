@@ -81,6 +81,26 @@ export const exportDataApi = () => request("/api/auth/export");
 export const deleteAccountApi = () => request("/api/auth/account", { method: "DELETE" });
 export const setMemberRoleApi = (tripId, memberId, role) => request(`/api/trips/${tripId}/members/${memberId}/role`, { method: "PATCH", body: { role } });
 
+export const getPollsApi = (tripId) => request(`/api/trips/${tripId}/polls`);
+export const addPollApi = (tripId, question, options) => request(`/api/trips/${tripId}/polls`, { method: "POST", body: { question, options } });
+export const voteOnPollApi = (tripId, pollId, optionIndex) => request(`/api/trips/${tripId}/polls/${pollId}/vote`, { method: "POST", body: { optionIndex } });
+export const deletePollApi = (tripId, pollId) => request(`/api/trips/${tripId}/polls/${pollId}`, { method: "DELETE" });
+
+export const getPackingApi = (tripId) => request(`/api/trips/${tripId}/packing`);
+export const addPackingItemApi = (tripId, text, assignedTo) => request(`/api/trips/${tripId}/packing`, { method: "POST", body: { text, assignedTo } });
+export const togglePackingItemApi = (tripId, itemId, done) => request(`/api/trips/${tripId}/packing/${itemId}`, { method: "PATCH", body: { done } });
+export const deletePackingItemApi = (tripId, itemId) => request(`/api/trips/${tripId}/packing/${itemId}`, { method: "DELETE" });
+
+export const getDocumentsApi = (tripId) => request(`/api/trips/${tripId}/documents`);
+export const addDocumentApi = (tripId, name, file) => request(`/api/trips/${tripId}/documents`, { method: "POST", body: { name, file } });
+export const deleteDocumentApi = (tripId, docId) => request(`/api/trips/${tripId}/documents/${docId}`, { method: "DELETE" });
+
+export const getItineraryApi = (tripId) => request(`/api/trips/${tripId}/itinerary`);
+export const addItineraryItemApi = (tripId, item) => request(`/api/trips/${tripId}/itinerary`, { method: "POST", body: item });
+export const deleteItineraryItemApi = (tripId, itemId) => request(`/api/trips/${tripId}/itinerary/${itemId}`, { method: "DELETE" });
+
+export const remindDebtApi = (tripId, toMemberId, amount) => request(`/api/trips/${tripId}/remind`, { method: "POST", body: { toMemberId, amount } });
+
 export const listTrips = () => request("/api/trips");
 export const createTrip = (payload) => request("/api/trips", { method: "POST", body: payload });
 export const joinTrip = (inviteCode) => request("/api/trips/join", { method: "POST", body: { inviteCode } });

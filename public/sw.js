@@ -26,8 +26,11 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const targetUrl = event.notification.data?.url || "/";
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (clients) => {
       for (const client of clients) {
+        if ("navigate" in client) {
+          try { await client.navigate(targetUrl); } catch { /* some browsers restrict cross-origin navigate — fall through to focus */ }
+        }
         if ("focus" in client) return client.focus();
       }
       if (self.clients.openWindow) return self.clients.openWindow(targetUrl);

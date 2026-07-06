@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import {
   Wallet, Users, Receipt, ArrowRightLeft, Crown, X, UserPlus, Plus, Check,
   Trash2, HandCoins, Utensils, Car, Bed, Ticket, ShoppingBag, MoreHorizontal, AlertTriangle,
-  Search, Camera, ImageOff,
+  Search, Camera, ImageOff, Bell,
 } from "lucide-react";
 import { T, btnPrimary, btnGhost } from "../lib/theme.js";
 import { Avatar, SectionLabel, Dashed, Empty, Field, AirmailStripe, StampBadge, DonutChart } from "./primitives.jsx";
@@ -116,6 +116,11 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
   };
   const toggleSplit = (id) => setExp(e => ({ ...e, splitAmong: e.splitAmong.includes(id) ? e.splitAmong.filter(x => x !== id) : [...e.splitAmong, id] }));
   const settleDebt = (d) => actions.settleDebt(d);
+  const [reminding, setReminding] = useState(null);
+  const remindDebt = async (d) => {
+    setReminding(d.from + d.to);
+    try { await actions.remindDebt(d.from, d.amount); } finally { setReminding(null); }
+  };
 
   return (
     <div>
@@ -226,6 +231,12 @@ export default function BudgetTab({ trip, fx, actions, myMemberId }) {
             background: T.tealDim, border: `1px solid rgba(91,155,213,0.4)`, borderRadius: 8, padding: "8px 12px",
             color: T.teal, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, flexShrink: 0,
           }}><HandCoins size={12} /> Öde</button>
+          {d.to === myMemberId && (
+            <button onClick={() => remindDebt(d)} disabled={reminding === (d.from + d.to)} title="Hatırlatma gönder" style={{
+              background: T.amberDim, border: `1px solid rgba(107,142,78,0.4)`, borderRadius: 8, padding: "8px 10px",
+              color: T.amber, cursor: "pointer", display: "flex", alignItems: "center", fontSize: 11.5, flexShrink: 0,
+            }}><Bell size={12} /></button>
+          )}
         </div>
       ))}
 

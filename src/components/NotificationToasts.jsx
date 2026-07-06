@@ -10,8 +10,14 @@ const ICONS = {
   member_joined: UserPlus,
 };
 
-export function NotificationToasts({ toasts, onDismiss }) {
+export function NotificationToasts({ toasts, onDismiss, onOpen }) {
   if (!toasts.length) return null;
+  const viewForType = (type) => {
+    if (type === "chat_message" || type === "location_shared") return "chat";
+    if (type === "expense_added" || type === "payment_made") return "budget";
+    if (type === "member_joined") return "home";
+    return null;
+  };
   return (
     <div style={{
       position: "fixed", top: "calc(10px + env(safe-area-inset-top))", left: 12, right: 12, zIndex: 200,
@@ -20,7 +26,7 @@ export function NotificationToasts({ toasts, onDismiss }) {
       {toasts.map(t => {
         const Icon = ICONS[t.type] || MessageCircle;
         return (
-          <div key={t.id} onClick={() => onDismiss(t.id)} style={{
+          <div key={t.id} onClick={() => { onOpen?.(viewForType(t.type)); onDismiss(t.id); }} style={{
             pointerEvents: "auto", display: "flex", alignItems: "flex-start", gap: 10,
             background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "12px 14px",
             boxShadow: "0 8px 24px rgba(0,0,0,0.18)", cursor: "pointer", animation: "fadeIn 0.25s ease",
