@@ -7,25 +7,39 @@ import { T } from "../lib/theme.js";
 import { L } from "../lib/i18n.js";
 
 export default function Sidebar({ open, onClose, view, setView, tripName, onBackToList, onLogout }) {
+  // Grouped into labeled sections instead of one flat 15-item list — much
+  // easier to scan at a glance than a single undifferentiated column.
   // Built at render time (not module load time) so labels reflect the
   // current language whenever the user switches it.
-  const ITEMS = [
-    { key: "home", label: L.navHome, icon: Home },
-    { key: "itinerary", label: "Gün Gün Plan", icon: CalendarDays },
-    { key: "budget", label: L.navBudget, icon: Wallet },
-    { key: "game", label: "Ödeme Oyunu", icon: Dices },
-    { key: "polls", label: "Oylamalar", icon: Vote },
-    { key: "explore", label: L.navExplore, icon: Compass },
-    { key: "weather", label: L.navWeather, icon: Cloud },
-    { key: "currency", label: L.navCurrency, icon: TrendingUp },
-    { key: "security", label: L.navSecurity, icon: ShieldAlert },
-    { key: "chat", label: L.navChat, icon: MessageCircle },
-    { key: "vlog", label: L.navVlog, icon: Film },
-    { key: "map", label: L.navMap, icon: MapIcon },
-    { key: "photos", label: L.navPhotos, icon: Images },
-    { key: "packing", label: "Paket Listesi", icon: Backpack },
-    { key: "documents", label: "Belgeler", icon: FileText },
-    { key: "profile", label: L.navProfile, icon: User },
+  const GROUPS = [
+    { label: "Genel", items: [
+      { key: "home", label: L.navHome, icon: Home },
+      { key: "itinerary", label: "Gün Gün Plan", icon: CalendarDays },
+    ]},
+    { label: "Bütçe", items: [
+      { key: "budget", label: L.navBudget, icon: Wallet },
+      { key: "game", label: "Ödeme Oyunu", icon: Dices },
+    ]},
+    { label: "Planlama", items: [
+      { key: "polls", label: "Oylamalar", icon: Vote },
+      { key: "packing", label: "Paket Listesi", icon: Backpack },
+      { key: "documents", label: "Belgeler", icon: FileText },
+    ]},
+    { label: "Keşif", items: [
+      { key: "explore", label: L.navExplore, icon: Compass },
+      { key: "weather", label: L.navWeather, icon: Cloud },
+      { key: "currency", label: L.navCurrency, icon: TrendingUp },
+      { key: "security", label: L.navSecurity, icon: ShieldAlert },
+      { key: "map", label: L.navMap, icon: MapIcon },
+    ]},
+    { label: "Sosyal", items: [
+      { key: "chat", label: L.navChat, icon: MessageCircle },
+      { key: "photos", label: L.navPhotos, icon: Images },
+      { key: "vlog", label: L.navVlog, icon: Film },
+    ]},
+    { label: "Hesap", items: [
+      { key: "profile", label: L.navProfile, icon: User },
+    ]},
   ];
   return (
     <>
@@ -47,16 +61,23 @@ export default function Sidebar({ open, onClose, view, setView, tripName, onBack
         </div>
 
         <div style={{ flex: 1, overflowY: "auto", padding: "10px 10px" }}>
-          {ITEMS.map(item => (
-            <button key={item.key} onClick={() => { setView(item.key); onClose(); }} style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 12px",
-              borderRadius: 10, border: "none", cursor: "pointer", marginBottom: 2,
-              background: view === item.key ? T.amberDim : "transparent",
-              color: view === item.key ? T.amber : T.text, fontSize: 14.5, fontWeight: view === item.key ? 600 : 500,
-              textAlign: "left",
-            }}>
-              <item.icon size={18} /> {item.label}
-            </button>
+          {GROUPS.map((group, gi) => (
+            <div key={group.label} style={{ marginBottom: gi < GROUPS.length - 1 ? 14 : 0 }}>
+              <div style={{ fontSize: 10.5, color: T.muted, textTransform: "uppercase", letterSpacing: 1, padding: "0 12px 6px", fontWeight: 700 }}>
+                {group.label}
+              </div>
+              {group.items.map(item => (
+                <button key={item.key} onClick={() => { setView(item.key); onClose(); }} style={{
+                  width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 12px",
+                  borderRadius: 10, border: "none", cursor: "pointer", marginBottom: 1,
+                  background: view === item.key ? T.amberDim : "transparent",
+                  color: view === item.key ? T.amber : T.text, fontSize: 14, fontWeight: view === item.key ? 600 : 500,
+                  textAlign: "left",
+                }}>
+                  <item.icon size={17} /> {item.label}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
 
