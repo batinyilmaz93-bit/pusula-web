@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Dices, History } from "lucide-react";
+import { Dices } from "lucide-react";
 import { T } from "../lib/theme.js";
-import { Empty, Spinner, Avatar } from "./primitives.jsx";
-import { spinGameApi, getGameHistoryApi } from "../lib/api.js";
+import { Avatar } from "./primitives.jsx";
+import { spinGameApi } from "../lib/api.js";
 import { getSocket } from "../lib/socket.js";
 import { colorForId } from "../lib/utils.js";
 
@@ -19,13 +19,14 @@ function sliceArcPath(cx, cy, r, startAngle, endAngle) {
   return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 0 ${end.x} ${end.y} Z`;
 }
 
+// Nothing here gets stored anywhere (no history endpoint, no DB table) — a
+// spin is a live, in-the-moment result only, by design.
 export default function GameTab({ trip }) {
   const [selected, setSelected] = useState(() => trip.members.map(m => m.id));
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [winner, setWinner] = useState(null);
   const [error, setError] = useState("");
-  const [history, setHistory] = useState(null);
   const wheelOrderRef = useRef(trip.members.map(m => m.id));
   const knownMemberIdsRef = useRef(new Set(trip.members.map(m => m.id)));
   const lastResultIdRef = useRef(null);
@@ -42,10 +43,6 @@ export default function GameTab({ trip }) {
   }, [trip.members]);
 
   useEffect(() => {
-    getGameHistoryApi(trip.id).then(r => setHistory(r.results)).catch(() => {});
-  }, [trip.id]);
-
-  useEffect(() => {
     const socket = getSocket();
     const onGame = (result) => {
       if (result.tripId !== trip.id) return;
@@ -53,7 +50,6 @@ export default function GameTab({ trip }) {
       lastResultIdRef.current = result.id;
       wheelOrderRef.current = result.participantIds;
       landOn(result.winnerId, result.participantIds);
-      setHistory(h => [result, ...(h || [])].slice(0, 20));
     };
     socket.on("trip:game", onGame);
     return () => socket.off("trip:game", onGame);
@@ -93,7 +89,6 @@ export default function GameTab({ trip }) {
       // still get the same animation via the trip:game broadcast.
       lastResultIdRef.current = result.id;
       landOn(result.winnerId, result.participantIds);
-      setHistory(h => [result, ...(h || [])].slice(0, 20));
     } catch (e) {
       setError(e.message);
     }
@@ -177,22 +172,8 @@ export default function GameTab({ trip }) {
 
       <button onClick={spin} disabled={spinning || selected.length < 2} style={{
         width: "100%", padding: "13px", borderRadius: 14, border: "none", background: T.amber, color: T.buttonTextOnAccent || "#fff",
-        fontWeight: 800, fontSize: 15, cursor: spinning ? "default" : "pointer", marginBottom: 20, opacity: spinning ? 0.7 : 1,
+        fontWeight: 800, fontSize: 15, cursor: spinning ? "default" : "pointer", opacity: spinning ? 0.7 : 1,
       }}>{spinning ? "Dönüyor..." : "Çarkı Çevir 🎲"}</button>
-
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-        <History size={14} color={T.muted} />
-        <span style={{ fontSize: 12, color: T.muted, fontWeight: 700 }}>Geçmiş</span>
-      </div>
-      {history === null && <Spinner label="Yükleniyor..." />}
-      {history?.length === 0 && <Empty text="Henüz oyun oynanmadı." />}
-      {history?.map(r => (
-        <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 4px", fontSize: 12.5, borderTop: `1px solid ${T.border}` }}>
-          <Avatar member={memberById[r.winnerId] || { id: r.winnerId, name: "?" }} size={20} />
-          <span>{memberById[r.winnerId]?.name || "Ayrılmış üye"} ısmarladı</span>
-          <span style={{ marginLeft: "auto", color: T.muted, fontSize: 10.5 }}>{new Date(r.createdAt).toLocaleDateString("tr-TR")}</span>
-        </div>
-      ))}
     </div>
   );
 }
