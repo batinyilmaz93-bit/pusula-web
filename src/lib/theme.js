@@ -25,18 +25,18 @@ export const LIGHT = {
 };
 
 export const DARK = {
-  bg: "#141F2E", surface: "#1B2A3D", card: "#213244", cardAlt: "#28394E",
-  border: "rgba(244,235,216,0.10)", dash: "rgba(244,235,216,0.24)",
-  text: "#F4EBD8", muted: "#9AAAC0",
-  amber: "#E2883D", amberDim: "rgba(226,136,61,0.18)",
-  teal: "#4FA8D8", tealDim: "rgba(79,168,216,0.18)",
-  navy: "#5E86B5", navyDim: "rgba(94,134,181,0.18)",
-  danger: "#E2574C", dangerDim: "rgba(226,87,76,0.18)",
-  success: "#5EC28A", successDim: "rgba(94,194,138,0.18)",
-  stripeRed: "#C1443B",
-  shadow: "0 4px 16px rgba(0,0,0,0.35)", shadowSoft: "0 2px 8px rgba(0,0,0,0.25)",
-  headerBar: "linear-gradient(120deg, #E2883D, #C1443B)",
-  buttonTextOnAccent: "#101820",
+  bg: "#1E160F", surface: "#2A2016", card: "#332619", cardAlt: "#3D2E1E",
+  border: "rgba(237,224,195,0.12)", dash: "rgba(237,224,195,0.28)",
+  text: "#EDE0C3", muted: "#B8A57E",
+  amber: "#C9954B", amberDim: "rgba(201,149,75,0.20)",
+  teal: "#7A9BA0", tealDim: "rgba(122,155,160,0.20)",
+  navy: "#8B6B3D", navyDim: "rgba(139,107,61,0.20)",
+  danger: "#C96856", dangerDim: "rgba(201,104,86,0.20)",
+  success: "#8FA05F", successDim: "rgba(143,160,95,0.20)",
+  stripeRed: "#C9954B",
+  shadow: "0 4px 16px rgba(0,0,0,0.4)", shadowSoft: "0 2px 8px rgba(0,0,0,0.3)",
+  headerBar: "linear-gradient(120deg, #C9954B, #8B5A2B)",
+  buttonTextOnAccent: "#1E160F",
 };
 
 // The single mutable object every component imports as `T`.

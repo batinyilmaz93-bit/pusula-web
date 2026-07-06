@@ -96,20 +96,17 @@ export default function App() {
     <div style={{
       minHeight: "100dvh", color: T.text, fontFamily: "'Libre Baskerville',sans-serif",
       maxWidth: 430, margin: "0 auto", position: "relative",
+      // Single layered background on the root element itself — the photo
+      // plus a theme-tinted gradient scrim, both in one `background`
+      // shorthand. No fixed positioning, no z-index, no separate div: a
+      // plain background on this element is guaranteed to sit behind every
+      // child by normal DOM painting order, so this can't silently fail the
+      // way the earlier fixed/negative-z-index version could depending on
+      // stacking-context quirks.
+      backgroundImage: `linear-gradient(180deg, ${hexToRgba(T.navy, 0.30)} 0%, ${hexToRgba(T.bg, 0.93)} 30%, ${hexToRgba(T.bg, 0.97)} 100%), url('/images/travel-desk-bg.jpg')`,
+      backgroundSize: "cover", backgroundPosition: "top center", backgroundRepeat: "no-repeat",
+      backgroundColor: T.bg, backgroundAttachment: "fixed",
     }}>
-      {/* Fixed, app-wide background photo — static, no animation (removed
-          per earlier feedback). Tinted heavily with the current theme's own
-          colors so it reads as an on-brand parchment/leather texture behind
-          the cards, not a raw photo competing with them. */}
-      <div style={{
-        position: "fixed", inset: 0, zIndex: -2, maxWidth: 430, margin: "0 auto",
-        backgroundImage: "url('/images/travel-desk-bg.jpg')", backgroundSize: "cover", backgroundPosition: "center",
-      }} />
-      <div style={{
-        position: "fixed", inset: 0, zIndex: -1, maxWidth: 430, margin: "0 auto",
-        background: `linear-gradient(180deg, ${hexToRgba(T.navy, 0.32)} 0%, ${hexToRgba(T.bg, 0.94)} 32%, ${hexToRgba(T.bg, 0.98)} 100%)`,
-      }} />
-
       <style>{FONTS}{`
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         html, body { overscroll-behavior-y: none; }
