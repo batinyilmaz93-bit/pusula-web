@@ -1,7 +1,7 @@
 import React from "react";
 import {
   X, Home, Wallet, Compass, Cloud, TrendingUp, ShieldAlert, Film, Map as MapIcon,
-  User, Images, MessageCircle, Vote, Backpack, FileText, CalendarDays, ChevronLeft, LogOut,
+  User, Images, MessageCircle, Vote, Backpack, FileText, CalendarDays, Dices, ChevronLeft, LogOut,
 } from "lucide-react";
 import { T } from "../lib/theme.js";
 import { L } from "../lib/i18n.js";
@@ -13,6 +13,7 @@ export default function Sidebar({ open, onClose, view, setView, tripName, onBack
     { key: "home", label: L.navHome, icon: Home },
     { key: "itinerary", label: "Gün Gün Plan", icon: CalendarDays },
     { key: "budget", label: L.navBudget, icon: Wallet },
+    { key: "game", label: "Ödeme Oyunu", icon: Dices },
     { key: "polls", label: "Oylamalar", icon: Vote },
     { key: "explore", label: L.navExplore, icon: Compass },
     { key: "weather", label: L.navWeather, icon: Cloud },

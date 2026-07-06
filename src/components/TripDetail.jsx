@@ -20,6 +20,7 @@ const PollsTab = lazy(() => import("./PollsTab.jsx"));
 const PackingListTab = lazy(() => import("./PackingListTab.jsx"));
 const DocumentsTab = lazy(() => import("./DocumentsTab.jsx"));
 const ItineraryTab = lazy(() => import("./ItineraryTab.jsx"));
+const GameTab = lazy(() => import("./GameTab.jsx"));
 import { NotificationToasts } from "./NotificationToasts.jsx";
 import FloatingChatButton from "./FloatingChatButton.jsx";
 import { getMasterEnabled, isNotificationEnabled, playNotificationSound } from "../lib/notifications.js";
@@ -347,6 +348,7 @@ export default function TripDetail({ tripId, initialView, onConsumeInitialView, 
           {view === "packing" && <PackingListTab trip={trip} />}
           {view === "documents" && <DocumentsTab trip={trip} />}
           {view === "itinerary" && <ItineraryTab trip={trip} />}
+          {view === "game" && <GameTab trip={trip} />}
         </Suspense>
 
         {view === "budget" && (

@@ -101,6 +101,9 @@ export const deleteItineraryItemApi = (tripId, itemId) => request(`/api/trips/${
 
 export const remindDebtApi = (tripId, toMemberId, amount) => request(`/api/trips/${tripId}/remind`, { method: "POST", body: { toMemberId, amount } });
 
+export const spinGameApi = (tripId, participantIds) => request(`/api/trips/${tripId}/game/spin`, { method: "POST", body: { participantIds } });
+export const getGameHistoryApi = (tripId) => request(`/api/trips/${tripId}/game/history`);
+
 export const listTrips = () => request("/api/trips");
 export const createTrip = (payload) => request("/api/trips", { method: "POST", body: payload });
 export const joinTrip = (inviteCode) => request("/api/trips/join", { method: "POST", body: { inviteCode } });
