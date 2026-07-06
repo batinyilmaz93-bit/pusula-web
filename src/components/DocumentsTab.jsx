@@ -43,7 +43,7 @@ export default function DocumentsTab({ trip }) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
         <FileText size={18} color={T.amber} />
-        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 800 }}>Belgeler</div>
+        <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontSize: 18, fontWeight: 800 }}>Belgeler</div>
       </div>
       <div style={{ fontSize: 12, color: T.muted, marginBottom: 14 }}>
         Pasaport, rezervasyon onayı, sigorta gibi belgeleri buraya yükleyip herkesle paylaş.

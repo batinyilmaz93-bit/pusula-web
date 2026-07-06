@@ -139,7 +139,7 @@ export default function ChatTab({ trip, myMemberId }) {
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100dvh - 220px)" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
         <MessageCircle size={18} color={T.amber} />
-        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 800 }}>{L.chatTitle}</div>
+        <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontSize: 18, fontWeight: 800 }}>{L.chatTitle}</div>
       </div>
 
       <div style={{ flex: 1, overflowY: "auto", background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: 12, boxShadow: T.shadowSoft, marginBottom: 10 }}>

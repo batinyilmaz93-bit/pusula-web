@@ -33,7 +33,7 @@ export default function CategoryPage({ trip, categoryKey, poi, poiLoading, poiOf
           <cat.icon size={20} />
         </div>
         <div>
-          <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, fontSize: 19 }}>{cat.label}</div>
+          <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontWeight: 600, fontSize: 19 }}>{cat.label}</div>
           <div style={{ fontSize: 11.5, color: T.muted }}>{trip.city}, {trip.country}</div>
         </div>
       </div>
@@ -53,7 +53,7 @@ export default function CategoryPage({ trip, categoryKey, poi, poiLoading, poiOf
       {shown.length > 0 && (
         <>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-            <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 13, color: T.muted }}>{cat.intro}</div>
+            <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontSize: 13, color: T.muted }}>{cat.intro}</div>
             {pool.length > SHOW_COUNT && (
               <button onClick={() => setSeed(s => s + 1)} style={{
                 display: "flex", alignItems: "center", gap: 4, background: "transparent", border: `1px solid ${T.dash}`,
@@ -70,7 +70,7 @@ export default function CategoryPage({ trip, categoryKey, poi, poiLoading, poiOf
                 <cat.icon size={16} />
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, fontSize: 14 }}>{item.name}</div>
+                <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontWeight: 600, fontSize: 14 }}>{item.name}</div>
                 <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>{item.note}</div>
               </div>
               <ExternalLink size={14} color={T.muted} style={{ flexShrink: 0 }} />

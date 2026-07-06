@@ -40,7 +40,7 @@ export default function Sidebar({ open, onClose, view, setView, tripName, onBack
         display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top)",
       }}>
         <div style={{ padding: "18px 18px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, fontSize: 17, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tripName}</div>
+          <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontWeight: 600, fontSize: 17, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tripName}</div>
           <button onClick={onClose} style={{ background: T.cardAlt, border: "none", borderRadius: 8, padding: 6, cursor: "pointer", color: T.muted, flexShrink: 0 }}>
             <X size={16} />
           </button>

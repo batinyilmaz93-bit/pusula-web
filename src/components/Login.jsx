@@ -82,13 +82,13 @@ export default function Login({ onReady, message, initialResetToken }) {
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{
             width: 72, height: 72, borderRadius: "50%", margin: "0 auto 18px",
-            background: `linear-gradient(150deg, ${T.amber}, #8FB86A)`,
+            background: `linear-gradient(150deg, ${T.amber}, #B8863C)`,
             display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 6px 18px rgba(107,142,78,0.32)",
           }}>
             <Compass size={32} color="#FFF9F0" strokeWidth={1.8} />
           </div>
-          <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 26, fontWeight: 800, color: T.text }}>
+          <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontSize: 26, fontWeight: 800, color: T.text }}>
             {titles[mode]}
           </div>
           <div style={{ fontSize: 13.5, color: T.muted, marginTop: 8, lineHeight: 1.5, maxWidth: 280, marginLeft: "auto", marginRight: "auto" }}>
@@ -150,7 +150,7 @@ export default function Login({ onReady, message, initialResetToken }) {
         <button
           onClick={mode === "forgot" ? submitForgot : mode === "reset" ? submitReset : submitLoginOrRegister}
           disabled={busy}
-          style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: T.amber, color: "#FFF9F0", fontWeight: 600, fontSize: 14.5, fontFamily: "'Nunito',sans-serif", cursor: "pointer", opacity: busy ? 0.75 : 1 }}
+          style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: T.amber, color: "#FFF9F0", fontWeight: 600, fontSize: 14.5, fontFamily: "'Libre Baskerville',sans-serif", cursor: "pointer", opacity: busy ? 0.75 : 1 }}
         >
           {busy ? "Bağlanıyor..." :
             mode === "register" ? "Hesap Oluştur" :

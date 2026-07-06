@@ -106,7 +106,7 @@ export default function GameTab({ trip }) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
         <Dices size={18} color={T.amber} />
-        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 800 }}>Ödeme Oyunu</div>
+        <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontSize: 18, fontWeight: 800 }}>Ödeme Oyunu</div>
       </div>
       <div style={{ fontSize: 12, color: T.muted, marginBottom: 14 }}>
         Çarkı çevir, kim ısmarlayacak rastgele belirlensin — herkes aynı sonucu aynı anda görür.
@@ -133,7 +133,7 @@ export default function GameTab({ trip }) {
               <g key={id}>
                 <path d={sliceArcPath(CX, CY, R, start, end)} fill={colorForId(id)} stroke={T.card} strokeWidth={2} />
                 <text x={labelPos.x} y={labelPos.y} textAnchor="middle" dominantBaseline="middle"
-                  fontSize={n > 6 ? 10 : 12} fontWeight={700} fill="#2A1C10" style={{ fontFamily: "'Nunito',sans-serif" }}>
+                  fontSize={n > 6 ? 10 : 12} fontWeight={700} fill="#2A1C10" style={{ fontFamily: "'Libre Baskerville',sans-serif" }}>
                   {(m?.name || "?").slice(0, 8)}
                 </text>
               </g>

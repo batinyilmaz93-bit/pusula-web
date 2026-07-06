@@ -69,7 +69,7 @@ export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLog
           <Luggage size={20} color="#FFF9F0" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 22, fontWeight: 600, color: "#FFF9F0" }}>Seyahatlerim</div>
+          <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontSize: 22, fontWeight: 600, color: "#FFF9F0" }}>Seyahatlerim</div>
           <div style={{ fontSize: 12, color: "rgba(255,249,240,0.82)" }}>{user?.name ? `Merhaba, ${user.name}` : "Ortak bütçe & seyahat asistanı"}</div>
         </div>
         {onLogout && (
@@ -102,7 +102,7 @@ export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLog
           <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}><AirmailStripe height={4} /></div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: 4 }}>
             <div>
-              <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, fontSize: 17 }}>{t.name}</div>
+              <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontWeight: 600, fontSize: 17 }}>{t.name}</div>
               <div style={{ fontSize: 12.5, color: T.muted, display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
                 <MapPin size={11} /> {t.city}, {t.country}
               </div>
@@ -138,7 +138,7 @@ export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLog
 
       {mode === "create" && (
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, marginTop: 6 }}>
-          <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, marginBottom: 12 }}>Yeni Seyahat</div>
+          <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontWeight: 600, marginBottom: 12 }}>Yeni Seyahat</div>
           <Field label="Seyahat adı" value={name} onChange={setName} placeholder="Örn. Ege Turu 2026" />
           <Field label="Ülke" value={country} onChange={setCountry} placeholder="Örn. Yunanistan" />
           <Field label="Şehir" value={city} onChange={setCity} placeholder="Örn. Sakız Adası" />
@@ -152,7 +152,7 @@ export default function TripList({ onOpen, pendingInvite, onConsumeInvite, onLog
 
       {mode === "join" && (
         <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: 16, marginTop: 6 }}>
-          <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, marginBottom: 12 }}>Davetle Katıl</div>
+          <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontWeight: 600, marginBottom: 12 }}>Davetle Katıl</div>
           <Field label="Davet kodu" value={inviteCode} onChange={v => setInviteCode(v.toUpperCase())} placeholder="Örn. BD7649" />
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={submitJoin} disabled={busy} style={btnPrimary}>{busy ? "Katılıyor..." : "Katıl"}</button>

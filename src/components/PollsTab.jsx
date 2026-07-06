@@ -56,7 +56,7 @@ export default function PollsTab({ trip, myMemberId, isAdmin }) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Vote size={18} color={T.amber} />
-          <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 800 }}>Oylamalar</div>
+          <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontSize: 18, fontWeight: 800 }}>Oylamalar</div>
         </div>
         <button onClick={() => setShowAdd(s => !s)} style={{
           display: "flex", alignItems: "center", gap: 5, background: T.amberDim, border: "none", borderRadius: 20,

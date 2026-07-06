@@ -6,6 +6,14 @@ import Login from "./components/Login.jsx";
 import TripList from "./components/TripList.jsx";
 import TripDetail from "./components/TripDetail.jsx";
 
+function hexToRgba(hex, alpha) {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 function readInviteFromUrl() {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -86,9 +94,22 @@ export default function App() {
 
   return (
     <div style={{
-      minHeight: "100dvh", background: T.bg, color: T.text, fontFamily: "'Nunito',sans-serif",
+      minHeight: "100dvh", color: T.text, fontFamily: "'Libre Baskerville',sans-serif",
       maxWidth: 430, margin: "0 auto", position: "relative",
     }}>
+      {/* Fixed, app-wide background photo — static, no animation (removed
+          per earlier feedback). Tinted heavily with the current theme's own
+          colors so it reads as an on-brand parchment/leather texture behind
+          the cards, not a raw photo competing with them. */}
+      <div style={{
+        position: "fixed", inset: 0, zIndex: -2, maxWidth: 430, margin: "0 auto",
+        backgroundImage: "url('/images/travel-desk-bg.jpg')", backgroundSize: "cover", backgroundPosition: "center",
+      }} />
+      <div style={{
+        position: "fixed", inset: 0, zIndex: -1, maxWidth: 430, margin: "0 auto",
+        background: `linear-gradient(180deg, ${hexToRgba(T.navy, 0.32)} 0%, ${hexToRgba(T.bg, 0.94)} 32%, ${hexToRgba(T.bg, 0.98)} 100%)`,
+      }} />
+
       <style>{FONTS}{`
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         html, body { overscroll-behavior-y: none; }

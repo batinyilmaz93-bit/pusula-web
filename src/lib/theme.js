@@ -10,18 +10,18 @@
    that already use T this way.
 ============================================================================ */
 export const LIGHT = {
-  bg: "#F7F1DF", surface: "#EFE9D2", card: "#FFFCF3", cardAlt: "#F3EDD9",
-  border: "rgba(107,90,45,0.12)", dash: "rgba(150,138,70,0.35)",
-  text: "#33301F", muted: "#7D7455",
-  amber: "#8C8F42", amberDim: "rgba(140,143,66,0.15)",
-  teal: "#5B9BD5", tealDim: "rgba(91,155,213,0.14)",
-  navy: "#8B6F47", navyDim: "rgba(139,111,71,0.13)",
-  danger: "#C24C42", dangerDim: "rgba(194,76,66,0.12)",
-  success: "#7A9142", successDim: "rgba(122,145,66,0.14)",
-  stripeRed: "#8C8F42",
-  shadow: "0 3px 14px rgba(107,90,45,0.11)", shadowSoft: "0 1px 6px rgba(107,90,45,0.07)",
-  headerBar: "linear-gradient(120deg, #D4A83E, #8C8F42)",
-  buttonTextOnAccent: "#FFFCF3",
+  bg: "#EDE0C3", surface: "#E3D3A9", card: "#FBF6E9", cardAlt: "#F1E4C5",
+  border: "rgba(107,74,46,0.14)", dash: "rgba(139,90,43,0.38)",
+  text: "#3A2A18", muted: "#8A7355",
+  amber: "#8B5A2B", amberDim: "rgba(139,90,43,0.15)",
+  teal: "#4A6670", tealDim: "rgba(74,102,112,0.15)",
+  navy: "#5C3D24", navyDim: "rgba(92,61,36,0.13)",
+  danger: "#A8433A", dangerDim: "rgba(168,67,58,0.13)",
+  success: "#6B7A4A", successDim: "rgba(107,122,74,0.15)",
+  stripeRed: "#8B5A2B",
+  shadow: "0 3px 14px rgba(92,61,36,0.14)", shadowSoft: "0 1px 6px rgba(92,61,36,0.09)",
+  headerBar: "linear-gradient(120deg, #8B5A2B, #B8863C)",
+  buttonTextOnAccent: "#FBF6E9",
 };
 
 export const DARK = {
@@ -51,7 +51,7 @@ export function applyTheme(mode) {
 }
 
 export const FONTS = `
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
 `;
 
 // Getter-based so `{...btnPrimary}` picks up the CURRENT T values at every
@@ -60,7 +60,7 @@ export const btnPrimary = {
   flex: 1, padding: "13px", borderRadius: 14, border: "none",
   get background() { return T.amber; },
   get color() { return T.buttonTextOnAccent; },
-  fontWeight: 600, fontSize: 15, cursor: "pointer", fontFamily: "'Nunito',sans-serif",
+  fontWeight: 600, fontSize: 15, cursor: "pointer", fontFamily: "'Libre Baskerville',sans-serif",
   get boxShadow() { return T.shadow; },
 };
 export const btnGhost = {
@@ -68,5 +68,5 @@ export const btnGhost = {
   get border() { return `1px solid ${T.border}`; },
   get background() { return T.card; },
   get color() { return T.muted; },
-  fontSize: 14, cursor: "pointer", fontFamily: "'Nunito',sans-serif",
+  fontSize: 14, cursor: "pointer", fontFamily: "'Libre Baskerville',sans-serif",
 };

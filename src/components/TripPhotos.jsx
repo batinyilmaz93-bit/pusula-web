@@ -40,7 +40,7 @@ export default function TripPhotos({ trip, actions }) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
         <Images size={18} color={T.amber} />
-        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 600 }}>{L.photosTitle}</div>
+        <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontSize: 18, fontWeight: 600 }}>{L.photosTitle}</div>
       </div>
       <div style={{ fontSize: 12, color: T.muted, marginBottom: 14 }}>
         Bu seyahatteki herkesin görüp ekleyebileceği ortak bir albüm — en fazla {5} fotoğraf. ({photos.length}/5)

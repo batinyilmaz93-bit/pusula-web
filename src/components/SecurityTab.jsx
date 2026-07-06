@@ -33,7 +33,7 @@ export default function SecurityTab({ trip, actions, news, newsLoading, newsErro
           <MapPinned size={22} color="#FFF9F0" />
         </div>
         <div>
-          <div style={{ fontFamily: "'Nunito',sans-serif", fontWeight: 600, fontSize: 16, color: "#FFF9F0" }}>Güvenlik Notları</div>
+          <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontWeight: 600, fontSize: 16, color: "#FFF9F0" }}>Güvenlik Notları</div>
           <div style={{ fontSize: 11.5, color: "rgba(255,249,240,0.75)", marginTop: 2 }}>{trip.city}, {trip.country} için topluluk uyarıları</div>
         </div>
       </div>

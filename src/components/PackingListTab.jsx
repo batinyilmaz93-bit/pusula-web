@@ -37,7 +37,7 @@ export default function PackingListTab({ trip }) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
         <Backpack size={18} color={T.amber} />
-        <div style={{ fontFamily: "'Nunito',sans-serif", fontSize: 18, fontWeight: 800 }}>Paket Listesi</div>
+        <div style={{ fontFamily: "'Libre Baskerville',sans-serif", fontSize: 18, fontWeight: 800 }}>Paket Listesi</div>
       </div>
       <div style={{ fontSize: 12, color: T.muted, marginBottom: 14 }}>
         {items ? `${doneCount}/${items.length} hazır` : "Yükleniyor..."} — istersen birine ata.
