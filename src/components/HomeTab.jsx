@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   AlertCircle, Vote, CalendarClock, Backpack, CheckCircle2, X,
-  Wallet, Cloud, TrendingUp, ShieldAlert, Users, Compass, Film, Map as MapIcon,
+  Wallet, Cloud, TrendingUp, CalendarDays, Users, Film, Map as MapIcon,
+  Utensils, Landmark, BedDouble, Coffee,
 } from "lucide-react";
 import { T } from "../lib/theme.js";
 import { Avatar } from "./primitives.jsx";
-import { POI_CATEGORIES } from "../lib/poiCategories.js";
+import CompassWidget from "./CompassWidget.jsx";
 import { fmtMoney, weatherEmoji, computeBalances } from "../lib/utils.js";
 import { getPollsApi, getItineraryApi, getPackingApi } from "../lib/api.js";
 
@@ -27,15 +28,15 @@ function TodoRow({ icon: Icon, color, title, body, onClick, onDismiss }) {
   const onPointerMove = (e) => {
     if (!dragging) return;
     const delta = e.clientX - startXRef.current;
-    setDragX(Math.min(0, delta)); // only allow dragging left
+    setDragX(Math.min(0, delta));
   };
   const endDrag = () => {
     setDragging(false);
     if (dragX < -90) {
-      setDragX(-400); // finish the swipe off-screen
+      setDragX(-400);
       setTimeout(onDismiss, 180);
     } else {
-      setDragX(0); // snap back
+      setDragX(0);
     }
   };
 
@@ -87,6 +88,27 @@ function QuickCard({ icon: Icon, label, value, onClick, accent }) {
   );
 }
 
+function BigExploreCard({ icon: Icon, label, onClick, bgPos }) {
+  return (
+    <button onClick={onClick} style={{
+      position: "relative", overflow: "hidden", border: `1px solid ${T.border}`, borderRadius: 18,
+      padding: "22px 14px", boxShadow: T.shadowSoft, cursor: "pointer", display: "flex", flexDirection: "column",
+      alignItems: "center", gap: 10, minHeight: 118,
+    }}>
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: `linear-gradient(160deg, ${T.navy}b3, ${T.amber}99), url('/images/travel-desk-bg.jpg')`,
+        backgroundSize: "220% auto", backgroundPosition: bgPos || "center",
+      }} />
+      <div style={{
+        position: "relative", width: 46, height: 46, borderRadius: "50%", background: "rgba(255,255,255,0.22)",
+        display: "flex", alignItems: "center", justifyContent: "center", color: "#FBF6E9", backdropFilter: "blur(2px)",
+      }}><Icon size={21} /></div>
+      <span style={{ position: "relative", fontSize: 13, fontWeight: 700, color: "#FBF6E9", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>{label}</span>
+    </button>
+  );
+}
+
 export default function HomeTab({ trip, fx, weather, myMemberId, setView }) {
   const [openPoll, setOpenPoll] = useState(null);
   const [nextItem, setNextItem] = useState(null);
@@ -115,33 +137,34 @@ export default function HomeTab({ trip, fx, weather, myMemberId, setView }) {
   if (myBalance < -0.5) allItems.push({ key: "debt", icon: AlertCircle, color: T.danger, title: `${fmtMoney(-myBalance, currency)} borcun var`, body: "Bakiye özetinden öde", onClick: () => setView("budget") });
   if (myBalance > 0.5) allItems.push({ key: "credit", icon: AlertCircle, color: T.success, title: `${fmtMoney(myBalance, currency)} alacağın var`, body: "Hatırlatma gönderebilirsin", onClick: () => setView("budget") });
   if (openPoll) allItems.push({ key: "poll", icon: Vote, color: T.amber, title: "Bir oylama seni bekliyor", body: openPoll.question, onClick: () => setView("polls") });
-  if (nextItem) allItems.push({ key: "itinerary", icon: CalendarClock, color: T.navy, title: `Sıradaki plan${nextItem.time ? " · " + nextItem.time.slice(0, 5) : ""}`, body: nextItem.title, onClick: () => setView("itinerary") });
   if (myPackingLeft > 0) allItems.push({ key: "packing", icon: Backpack, color: T.teal, title: `${myPackingLeft} paket maddesi kaldı`, body: "Paket listesini gör", onClick: () => setView("packing") });
   const items = allItems.filter(it => !dismissed.has(it.key));
 
   return (
     <div>
-      <div style={{
-        background: `linear-gradient(135deg, ${T.navy}, ${T.amber})`, borderRadius: 20, padding: 20,
-        boxShadow: T.shadow, marginBottom: 16,
-      }}>
-        <div style={{ fontFamily: "'Libre Baskerville',serif", fontSize: 23, fontWeight: 700, color: T.buttonTextOnAccent }}>{trip.name}</div>
-        <div style={{ fontSize: 12.5, color: T.buttonTextOnAccent, opacity: 0.85, marginTop: 3 }}>{trip.city}, {trip.country}</div>
-        <div style={{ display: "flex", alignItems: "center", marginTop: 14 }}>
+      <CompassWidget size={190} />
+
+      <div style={{ textAlign: "center", margin: "18px 0 20px" }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: T.amber, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
+          Hoş Geldin, Kaşif
+        </div>
+        <div style={{ fontFamily: "'Libre Baskerville',serif", fontSize: 26, fontWeight: 700, color: T.text }}>{trip.name}</div>
+        <div style={{ fontSize: 12.5, color: T.muted, marginTop: 4 }}>{trip.city}, {trip.country}</div>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>
           {trip.members.slice(0, 6).map((m, i) => (
-            <div key={m.id} style={{ marginLeft: i === 0 ? 0 : -8, border: `2px solid ${T.amber}`, borderRadius: "50%" }}><Avatar member={m} size={27} /></div>
+            <div key={m.id} style={{ marginLeft: i === 0 ? 0 : -8, border: `2px solid ${T.bg}`, borderRadius: "50%" }}><Avatar member={m} size={26} /></div>
           ))}
-          <span style={{ fontSize: 11, color: T.buttonTextOnAccent, opacity: 0.85, marginLeft: 10, display: "flex", alignItems: "center", gap: 4 }}>
-            <Users size={12} /> {trip.members.length} kişi
+          <span style={{ fontSize: 11, color: T.muted, marginLeft: 8, display: "flex", alignItems: "center", gap: 4 }}>
+            <Users size={11} /> {trip.members.length} kişi
           </span>
         </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
         <QuickCard icon={Wallet} label="Toplam Harcama" value={fmtMoney(total, currency)} onClick={() => setView("budget")} accent={T.amber} />
-        <QuickCard icon={Cloud} label="Şu An" value={weather?.temp !== undefined ? `${Math.round(weather.temp)}° ${weatherEmoji(weather.code)}` : "—"} onClick={() => setView("weather")} accent={T.teal} />
+        <QuickCard icon={Cloud} label="Hava Durumu" value={weather?.temp !== undefined ? `${Math.round(weather.temp)}° ${weatherEmoji(weather.code)}` : "—"} onClick={() => setView("weather")} accent={T.teal} />
         <QuickCard icon={TrendingUp} label="Kur" value={fx ? `1 ${fx.code} = ${fx.rate.toFixed(2)}` : "—"} onClick={() => setView("currency")} accent={T.navy} />
-        <QuickCard icon={ShieldAlert} label="Güvenlik" value={`${trip.hazards?.length || 0} not`} onClick={() => setView("security")} accent={T.danger} />
+        <QuickCard icon={CalendarDays} label="Takvim" value={nextItem ? (nextItem.time ? nextItem.time.slice(0, 5) : "Plan var") : "Boş"} onClick={() => setView("itinerary")} accent={T.danger} />
       </div>
 
       {items.length > 0 && (
@@ -155,18 +178,11 @@ export default function HomeTab({ trip, fx, weather, myMemberId, setView }) {
       )}
 
       <div style={{ fontSize: 11, color: T.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Keşfetmeye Başla</div>
-      <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 6, marginBottom: 18 }}>
-        {POI_CATEGORIES.map(c => (
-          <button key={c.key} onClick={() => setView(`category:${c.key}`)} style={{
-            flexShrink: 0, width: 82, display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-            background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: "12px 8px", cursor: "pointer", boxShadow: T.shadowSoft,
-          }}>
-            <div style={{ width: 34, height: 34, borderRadius: 9, background: T.amberDim, display: "flex", alignItems: "center", justifyContent: "center", color: T.amber }}>
-              <c.icon size={16} />
-            </div>
-            <span style={{ fontSize: 10, color: T.text, textAlign: "center", lineHeight: 1.2 }}>{c.label}</span>
-          </button>
-        ))}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
+        <BigExploreCard icon={Utensils} label="Restoran" onClick={() => setView("category:restaurant")} bgPos="20% 30%" />
+        <BigExploreCard icon={Landmark} label="Müze" onClick={() => setView("category:museum")} bgPos="70% 20%" />
+        <BigExploreCard icon={BedDouble} label="Konaklama" onClick={() => setView("category:lodging")} bgPos="30% 70%" />
+        <BigExploreCard icon={Coffee} label="Cafe & Bar" onClick={() => setView("category:cafe")} bgPos="80% 65%" />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>

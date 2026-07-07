@@ -29,8 +29,10 @@ export default function Sidebar({ open, onClose, view, setView, tripName, onBack
       { key: "explore", label: L.navExplore, icon: Compass },
       { key: "weather", label: L.navWeather, icon: Cloud },
       { key: "currency", label: L.navCurrency, icon: TrendingUp },
-      { key: "security", label: L.navSecurity, icon: ShieldAlert },
       { key: "map", label: L.navMap, icon: MapIcon },
+    ]},
+    { label: "Güvenlik", items: [
+      { key: "security", label: L.navSecurity, icon: ShieldAlert },
     ]},
     { label: "Sosyal", items: [
       { key: "chat", label: L.navChat, icon: MessageCircle },

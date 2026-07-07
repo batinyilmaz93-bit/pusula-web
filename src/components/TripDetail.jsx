@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState, Suspense, lazy } from "react";
-import { Menu, Copy, Check, Share2, LogOut, Home, Wallet, Compass, ShieldAlert } from "lucide-react";
+import {
+  Menu, Copy, Check, Share2, LogOut, Home, Wallet, Compass, ShieldAlert,
+  CalendarDays, Dices, Vote, Backpack, FileText, Cloud, TrendingUp, Map as MapIcon,
+  MessageCircle, Images, Film, Users,
+} from "lucide-react";
 import { T } from "../lib/theme.js";
 import { L } from "../lib/i18n.js";
 import { AirmailStripe, Empty, Spinner } from "./primitives.jsx";
@@ -44,6 +48,7 @@ export default function TripDetail({ tripId, initialView, onConsumeInitialView, 
   const [view, setView] = useState(() => initialView || "home");
   useEffect(() => { if (initialView) onConsumeInitialView?.(); }, []); // eslint-disable-line
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [openNavGroup, setOpenNavGroup] = useState(null);
   const [copied, setCopied] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [unreadChat, setUnreadChat] = useState(0);
@@ -279,15 +284,38 @@ export default function TripDetail({ tripId, initialView, onConsumeInitialView, 
     }
   };
 
-  const bottomTabs = [
-    { key: "home", label: L.navHome, icon: Home },
-    { key: "budget", label: L.navBudget, icon: Wallet },
-    { key: "explore", label: L.navExplore, icon: Compass },
-    { key: "security", label: L.navSecurity, icon: ShieldAlert },
+  const NAV_GROUPS = [
+    { key: "genel", label: "Genel", icon: Home, items: [
+      { key: "home", label: "Ana Sayfa", icon: Home },
+      { key: "itinerary", label: "Gün Gün Plan", icon: CalendarDays },
+    ]},
+    { key: "butce", label: "Bütçe", icon: Wallet, items: [
+      { key: "budget", label: "Bütçe", icon: Wallet },
+      { key: "game", label: "Ödeme Oyunu", icon: Dices },
+    ]},
+    { key: "planlama", label: "Planlama", icon: CalendarDays, items: [
+      { key: "polls", label: "Oylamalar", icon: Vote },
+      { key: "packing", label: "Paket Listesi", icon: Backpack },
+      { key: "documents", label: "Belgeler", icon: FileText },
+    ]},
+    { key: "kesif", label: "Keşif", icon: Compass, items: [
+      { key: "explore", label: "Keşfet", icon: Compass },
+      { key: "weather", label: "Hava Durumu", icon: Cloud },
+      { key: "currency", label: "Döviz Kuru", icon: TrendingUp },
+      { key: "map", label: "Harita", icon: MapIcon },
+    ]},
+    { key: "sosyal", label: "Sosyal", icon: Users, items: [
+      { key: "chat", label: "Sohbet", icon: MessageCircle },
+      { key: "photos", label: "Fotoğraflar", icon: Images },
+      { key: "vlog", label: "Seyahat Vlogu", icon: Film },
+    ]},
+    { key: "guvenlik", label: "Güvenlik", icon: ShieldAlert, items: null }, // single screen, no submenu
   ];
   const isCategory = view.startsWith("category:");
   const categoryKey = isCategory ? view.split(":")[1] : null;
-  const activeBottomKey = isCategory ? "explore" : view;
+  const effectiveView = isCategory ? "explore" : view;
+  const activeGroupKey = NAV_GROUPS.find(g => g.items ? g.items.some(i => i.key === effectiveView) : g.key === "guvenlik" && effectiveView === "security")?.key
+    || (effectiveView === "security" ? "guvenlik" : null);
 
   return (
     <div>
@@ -367,25 +395,46 @@ export default function TripDetail({ tripId, initialView, onConsumeInitialView, 
         )}
       </div>
 
-      <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: T.surface, borderTop: `1px solid ${T.border}` }}>
+      {openNavGroup && (
+        <div onClick={() => setOpenNavGroup(null)} style={{ position: "fixed", inset: 0, zIndex: 44 }} />
+      )}
+      <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: T.surface, borderTop: `1px solid ${T.border}`, zIndex: 45 }}>
         <AirmailStripe height={3} />
-        <div style={{ display: "flex", padding: "8px 4px calc(8px + env(safe-area-inset-bottom))" }}>
-          {bottomTabs.map(t => (
-            <button key={t.key} onClick={() => setView(t.key)} style={{
-              flex: 1, background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 3, padding: "6px 0", cursor: "pointer", color: activeBottomKey === t.key ? T.amber : T.muted,
-            }}>
-              <t.icon size={18} />
-              <span style={{ fontSize: 10, fontFamily: "'Libre Baskerville',sans-serif", fontWeight: activeBottomKey === t.key ? 600 : 400 }}>{t.label}</span>
-            </button>
+        <div style={{ display: "flex", padding: "8px 4px calc(8px + env(safe-area-inset-bottom))", position: "relative" }}>
+          {NAV_GROUPS.map(g => (
+            <div key={g.key} style={{ flex: 1, position: "relative" }}>
+              {openNavGroup === g.key && g.items && (
+                <div style={{
+                  position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)",
+                  background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: T.shadow,
+                  padding: 6, minWidth: 168, zIndex: 46,
+                }}>
+                  {g.items.map(item => (
+                    <button key={item.key} onClick={() => { setView(item.key); setOpenNavGroup(null); }} style={{
+                      width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9,
+                      border: "none", cursor: "pointer", textAlign: "left", whiteSpace: "nowrap",
+                      background: effectiveView === item.key ? T.amberDim : "transparent",
+                      color: effectiveView === item.key ? T.amber : T.text, fontSize: 13, fontWeight: effectiveView === item.key ? 600 : 500,
+                    }}>
+                      <item.icon size={15} /> {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => {
+                  if (g.items) { setOpenNavGroup(o => o === g.key ? null : g.key); }
+                  else { setView("security"); setOpenNavGroup(null); }
+                }}
+                style={{
+                  width: "100%", background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center",
+                  gap: 3, padding: "6px 0", cursor: "pointer", color: activeGroupKey === g.key ? T.amber : T.muted,
+                }}>
+                <g.icon size={18} />
+                <span style={{ fontSize: 10, fontFamily: "'Libre Baskerville',sans-serif", fontWeight: activeGroupKey === g.key ? 600 : 400 }}>{g.label}</span>
+              </button>
+            </div>
           ))}
-          <button onClick={() => setSidebarOpen(true)} style={{
-            flex: 1, background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center",
-            gap: 3, padding: "6px 0", cursor: "pointer", color: T.muted,
-          }}>
-            <Menu size={17} />
-            <span style={{ fontSize: 10 }}>Daha Fazla</span>
-          </button>
         </div>
       </div>
     </div>
